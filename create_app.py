@@ -1,9 +1,9 @@
 # coding:utf-8
-import config
 from flask import Flask
 from flask_cors import CORS
-from my_dispatcher import api
-from all_api import *
+
+import config
+from api import *
 
 
 def create_app():
