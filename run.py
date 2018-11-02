@@ -9,7 +9,8 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
 
 @app.route('/api_test/')
 def index():
-    return render_template('index.html')
+
+    return "hello" #render_template('index.html')
 
 
 if __name__ == '__main__':

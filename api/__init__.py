@@ -1,1 +1,1 @@
-from all_api import *
+from api.all_api import *
