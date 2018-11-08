@@ -2,13 +2,13 @@ import requests
 import json
 
 def main():
-    url = "http://localhost:8000/api"
+    url = "http://localhost:4000/api"
     headers = {'content-type': 'application/json'}
 
     # Example echo method
     payload = {
         "method": "my_method",
-        "params": ["echome!"],
+        "params": [{"name":"John Doe","gender":"male"}],
         "jsonrpc": "2.0",
         "id": 0,
     }

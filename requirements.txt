@@ -4,3 +4,7 @@ requests==2.20.0
 Flask_Cors==3.0.6
 json_rpc==1.11.1
 jsonrpc==1.2
+py_solc==3.2.0
+Flask==1.0.2
+web3==4.8.1
+marshmallow==2.16.3
