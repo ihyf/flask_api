@@ -5,6 +5,7 @@ import json
 from util.compile_solidity_utils import w3
 from util.check_fuc import check_kv
 from flask import Flask, Response, request, jsonify
+from eth_account import Account
 
 
 def check_gender(data):
@@ -28,6 +29,7 @@ def my_method(*args, **kwargs):
 
 @api_add
 def user_contract(*args, **kwargs):
+    # 测试合约
     w3.eth.defaultAccount = w3.eth.accounts[1]
     
     with open("data.json", 'r') as f:
@@ -64,13 +66,32 @@ def create_account(*args, **kwargs):
         return {"account": account}
     else:
         return {"error": "no password"}
+    
+    
+@api_add
+def create_account1(*args, **kwargs):
+    password = kwargs.get("password", None)
+    if password:
+        account = Account.create()
+        private_key = account._key_obj
+        public_key = private_key.public_key
+        address = public_key.to_checksum_address()
+        wallet = Account.encrypt(account.privateKey, password)
+        data = {
+            "address": address,
+            "keystore": wallet
+        }
+        return data
+    else:
+        return {"error": "no password"}
 
 
 @api_add
 def get_balance(*args, **kwargs):
+    # 获取余额
     account = kwargs.get("account", None)
     if account:
-        eth_balance = w3.eth.getBalance(account)
+        eth_balance = w3.eth.getBalance(account, 'latest')
         return {"eth_balance": eth_balance}
     else:
         return {"error": "no account"}
@@ -78,6 +99,7 @@ def get_balance(*args, **kwargs):
 
 @api_add
 def send_transaction(*args, **kwargs):
+    # 转账
     necessary_keys = ["to_address", "from_address", "value", "pwd"]
     check = check_kv(kwargs, necessary_keys)
     if check == "Success":
@@ -101,3 +123,26 @@ def send_transaction(*args, **kwargs):
             return {"error": "pwssword not ture!"}
     else:
         return {"error": check}
+
+
+@api_add
+def import_private_key(*args, **kwargs):
+    # 导入私钥
+    private_key = kwargs.get("private_key", None)
+    if private_key:
+        account = Account.privateKeyToAccount(private_key)
+        privateKey = account._key_obj
+        publicKey = privateKey.public_key
+        address = publicKey.to_checksum_address()
+        return {"address": address}
+    else:
+        return {"error": "no privete_key"}
+
+
+@api_add
+def get_all_transaction(*args, **kwargs):
+    address = kwargs.get("address", None)
+    filter = w3.eth.filter({'fromBlock': 0, 'toBlock': 'latest', 'address': address})
+    b = dir(filter)
+    a = filter.__dict__.items()
+    print(a)
