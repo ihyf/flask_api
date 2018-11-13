@@ -7,6 +7,9 @@ from util.compile_solidity_utils import deploy_n_transact
 
 app = create_app()
 app.wsgi_app = ProxyFix(app.wsgi_app)
+@app.route('/')
+def hello():
+    return "hello"
 
 
 @app.route('/compile_contracts')
@@ -26,4 +29,4 @@ def compile_contracts():
 
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=4000)
+    app.run(host='localhost', port=3000)

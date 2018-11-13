@@ -1,3 +1,4 @@
+# coding:utf-8
 import pickle
 from web3 import Web3
 from solc import compile_files, link_code

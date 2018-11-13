@@ -3,7 +3,9 @@ from my_dispatcher import api_add, api
 from marshmallow import Schema, fields, ValidationError
 import json
 from util.compile_solidity_utils import w3
+from util.check_fuc import check_kv
 from flask import Flask, Response, request, jsonify
+
 
 def check_gender(data):
     valid_list = ["male", "female"]
@@ -38,14 +40,64 @@ def user_contract(*args, **kwargs):
         address=contract_address, abi=abi,
     )
     body = request.get_json()
-    result, error = UserSchema().load(body)
-    if error:
-        return jsonify(error), 422
+    name = body['params']['name']
+    gender = body['params']['gender']
+    # result, error = UserSchema().load(body)
+    # if error:
+    #     return jsonify(error), 422
     tx_hash = user.functions.setUser(
-        result['name'], result['gender']
+        name, gender
     )
     tx_hash = tx_hash.transact()
     # Wait for transaction to be mined...
     w3.eth.waitForTransactionReceipt(tx_hash)
     user_data = user.functions.getUser().call()
     return jsonify({"data": user_data}), 200
+
+
+@api_add
+def create_account(*args, **kwargs):
+    # 创建账户
+    password = kwargs.get("password", None)
+    if password:
+        account = w3.personal.newAccount(password)
+        return {"account": account}
+    else:
+        return {"error": "no password"}
+
+
+@api_add
+def get_balance(*args, **kwargs):
+    account = kwargs.get("account", None)
+    if account:
+        eth_balance = w3.eth.getBalance(account)
+        return {"eth_balance": eth_balance}
+    else:
+        return {"error": "no account"}
+    
+
+@api_add
+def send_transaction(*args, **kwargs):
+    necessary_keys = ["to_address", "from_address", "value", "pwd"]
+    check = check_kv(kwargs, necessary_keys)
+    if check == "Success":
+        to_address = kwargs.get("to_address", None)
+        from_address = kwargs.get("from_address", None)
+        value = kwargs.get("value", None)
+        pwd = kwargs.get("pwd", None)
+        # 解锁账户
+        if w3.personal.unlockAccount(from_address, pwd):
+        
+            transaction_dict = {
+                "to": to_address,
+                "from": from_address,
+                "value": w3.toWei(value, 'ether')
+            }
+        
+            tx_hash_bytes = w3.eth.sendTransaction(transaction_dict)
+            tx_hash = tx_hash_bytes.hex()
+            return {"tx_hash": tx_hash}
+        else:
+            return {"error": "pwssword not ture!"}
+    else:
+        return {"error": check}
