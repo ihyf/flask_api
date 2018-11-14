@@ -58,8 +58,8 @@ def user_contract(*args, **kwargs):
 
 
 @api_add
-def create_account(*args, **kwargs):
-    # 创建账户
+def create_account_11(*args, **kwargs):
+    # 创建账户 11
     password = kwargs.get("password", None)
     if password:
         account = w3.personal.newAccount(password)
@@ -69,7 +69,8 @@ def create_account(*args, **kwargs):
     
     
 @api_add
-def create_account1(*args, **kwargs):
+def create_account(*args, **kwargs):
+    # 创建账户
     password = kwargs.get("password", None)
     if password:
         account = Account.create()
@@ -98,8 +99,8 @@ def get_balance(*args, **kwargs):
     
 
 @api_add
-def send_transaction(*args, **kwargs):
-    # 转账
+def send_transaction_11(*args, **kwargs):
+    # 转账 明文..
     necessary_keys = ["to_address", "from_address", "value", "pwd"]
     check = check_kv(kwargs, necessary_keys)
     if check == "Success":
@@ -123,24 +124,71 @@ def send_transaction(*args, **kwargs):
             return {"error": "pwssword not ture!"}
     else:
         return {"error": check}
+    
+
+@api_add
+def send_transaction(*args, **kwargs):
+    # 裸交易
+    necessary_keys = ["to_address", "from_address", "value", "pwd", "keystore"]
+    check = check_kv(kwargs, necessary_keys)
+    if check == "Success":
+        to_address = kwargs.get("to_address", None)
+        value = kwargs.get("value", None)
+        pwd = kwargs.get("pwd", None)
+        keystore = kwargs.get("keystore", None)
+        private_key = Account.decrypt(json.dumps(keystore), pwd)
+        account = Account.privateKeyToAccount(private_key)
+        nonce = w3.eth.getTransactionCount(account.address)
+        transaction_dict = {
+            'to': to_address,
+            'value': w3.toWei(value, 'ether'),
+            'gas': 200000,
+            'gasPrice': w3.toWei(3000, 'gwei'),
+            'nonce': nonce,
+            'chainId': 1
+        }
+        signed = account.signTransaction(transaction_dict)
+        tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
+        receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+        return {"tx_hash": tx_hash.hex()}
+    else:
+        return {"error": check}
 
 
 @api_add
 def import_private_key(*args, **kwargs):
     # 导入私钥
     private_key = kwargs.get("private_key", None)
-    if private_key:
+    pwd = kwargs.get("pwd", None)
+    if private_key and pwd:
         account = Account.privateKeyToAccount(private_key)
         privateKey = account._key_obj
         publicKey = privateKey.public_key
         address = publicKey.to_checksum_address()
-        return {"address": address}
+        wallet = Account.encrypt(account.privateKey, pwd)
+        data = {
+            "address": address,
+            "keystore": wallet
+        }
+        return data
     else:
-        return {"error": "no privete_key"}
+        return {"error": "no privete_key or no pwd"}
+
+
+@api_add
+def export_private(*args, **kwargs):
+    # 导出私钥
+    necessary_keys = ["pwd", "keystore"]
+    check = check_kv(kwargs, necessary_keys)
+    if check == "Success":
+        pass
+    else:
+        return {"error": check}
 
 
 @api_add
 def get_all_transaction(*args, **kwargs):
+    # 交易列表 待找方法
     address = kwargs.get("address", None)
     filter = w3.eth.filter({'fromBlock': 0, 'toBlock': 'latest', 'address': address})
     b = dir(filter)
