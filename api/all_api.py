@@ -71,13 +71,13 @@ def create_account_11(*args, **kwargs):
 @api_add
 def create_account(*args, **kwargs):
     # 创建账户
-    password = kwargs.get("password", None)
-    if password:
+    pwd = kwargs.get("pwd", None)
+    if pwd:
         account = Account.create()
         private_key = account._key_obj
         public_key = private_key.public_key
         address = public_key.to_checksum_address()
-        wallet = Account.encrypt(account.privateKey, password)
+        wallet = Account.encrypt(account.privateKey, pwd)
         data = {
             "address": address,
             "keystore": wallet
@@ -181,7 +181,10 @@ def export_private(*args, **kwargs):
     necessary_keys = ["pwd", "keystore"]
     check = check_kv(kwargs, necessary_keys)
     if check == "Success":
-        pass
+        keystore = kwargs.get("keystore", None)
+        pwd = kwargs.get("kwd", None)
+        private_key = Account.decrypt(json.dumps(keystore), pwd)
+        return {"private_key": private_key}
     else:
         return {"error": check}
 
