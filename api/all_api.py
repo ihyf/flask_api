@@ -6,6 +6,7 @@ from util.compile_solidity_utils import w3
 from util.check_fuc import check_kv
 from flask import Flask, Response, request, jsonify
 from eth_account import Account
+from util.pgsql_db import get_conn, fetchall
 
 
 def check_gender(data):
@@ -137,7 +138,7 @@ def send_transaction(*args, **kwargs):
         pwd = kwargs.get("pwd", None)
         keystore = kwargs.get("keystore", None)
         private_key = Account.decrypt(json.dumps(keystore), pwd)
-        account = Account.privateKeyToAccount(private_key)
+        account = Account.privateKeyToAccount("162a0fcdf157ef4b78e0b6caccf1fa2dabc77c8f053342454a0035dac36a01b6")
         nonce = w3.eth.getTransactionCount(account.address)
         transaction_dict = {
             'to': to_address,
@@ -149,7 +150,7 @@ def send_transaction(*args, **kwargs):
         }
         signed = account.signTransaction(transaction_dict)
         tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
-        receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+        # receipt = w3.eth.waitForTransactionReceipt(tx_hash)
         return {"tx_hash": tx_hash.hex()}
     else:
         return {"error": check}
@@ -193,7 +194,21 @@ def export_private(*args, **kwargs):
 def get_all_transaction(*args, **kwargs):
     # 交易列表 待找方法
     address = kwargs.get("address", None)
-    filter = w3.eth.filter({'fromBlock': 0, 'toBlock': 'latest', 'address': address})
-    b = dir(filter)
-    a = filter.__dict__.items()
-    print(a)
+    necessary_keys = ["address"]
+    check = check_kv(kwargs, necessary_keys)
+    if check == "Success":
+        sql = """select hash,from1,to1,value1 from transaction_db where from1='{}' or to1='{}'""".format(address,address)
+        conn = get_conn()
+        result_list = fetchall(conn, sql)
+        transaction_list = []
+        for l in result_list:
+            d = {
+                't_hash': l[0],
+                'from1': l[1],
+                'to1': l[2],
+                'value1': w3.fromWei(int(l[3]), 'ether')
+            }
+            transaction_list.append(d)
+        return {"transaction_list": transaction_list}
+    else:
+        return {"error": check}

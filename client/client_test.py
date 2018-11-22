@@ -11,69 +11,57 @@ def main():
     url = "http://localhost:3000/api"
     headers = {"content-type": "application/json"}
     
-    keystore = {"address": "198bce50b62c70cc691362d6c1ffbf7fb95045ce", "crypto": {"cipher": "aes-128-ctr", "cipherparams": {"iv": "cea79bc62e3cb698343ce4be5417a540"}, "ciphertext": "b7f5ad1e961a125e75b7d13cb26b887abb7d9dccda8860c4bddde548c3863657", "kdf": "pbkdf2", "kdfparams": {"c": 1000000, "dklen": 32, "prf": "hmac-sha256", "salt": "ea1e86e8172fe19d46bfb83085949b72"}, "mac": "5f5f0437d6bd8971ba358a6d80f58a5aaae5d1fb6a5a660afb5bf04823741bc7"}, "id": "27d686e8-0043-4ca7-b434-9c78cf216024", "version": 3}
+    keystore = \
+	{'address': '7c908389026b978422cd8ee9d28c17c44fad7af0',
+	 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': 'd2fdbce8725e93d736b5c1ad3926c72d'},
+				'ciphertext': '741e8d9c4d15d2d9f5c979e3a692094c0335b673c11aacfc88fb01396481421a', 'kdf': 'pbkdf2',
+				'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256',
+							  'salt': '3dc4d554d1ed511dc75a0fdfa6734848'},
+				'mac': '9d589f6f1b5120517fb2ba04a26555da6f70a485172e585d71c37dc0effda4b7'},
+	 'id': '488c4ff2-429d-4bc1-aaf2-4c186d0c7970', 'version': 3}
 
     # Example echo method
     # payload = {
     #     "method": "send_transaction",
     #     "params": {
-    #         "to_address": "0xbe8aA6eA0488B92B644327D5106390B4c0F6F49d",
+    #         "to_address": "0x11a64FC5Da3EaACa563b417c447F66bdC80f15E9",
     #         "from_address": "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1",
     #         "value": 10,
-    #         "pwd": "hyf111",
+    #         "pwd": "hyf",
     #     },
     #     "jsonrpc": "2.0",
     #     "id": 0,
     # }
-    payload = {
-        "method": "create_account",
-        "params": {"pwd": "hyf"},
-        "jsonrpc": "2.0",
-        "id": 0
-        }
     # payload = {
-    #     "method": "send_transaction1",
+    #     "method": "create_account",
+    #     "params": {"pwd": "hyf"},
+    #     "jsonrpc": "2.0",
+    #     "id": 0
+    #     }
+    # payload = {
+    #     "method": "send_transaction",
     #     "params": {
-    #         "to_address": "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1",
-    #         "from_address": "0x198bCe50B62c70CC691362d6C1FFBF7FB95045cE",
-    #         "value": 1,
+    #         "to_address": "0xbEdc1e0341A85A571243990d7bc057a554966CE5",
+    #         "from_address": "0x792DE4e56ec5280694C7e4cAc4e831D831FBE568",
+    #         "value": 2,
     #         "pwd": "hyf",
     #         "keystore": keystore
     #     },
     #     "jsonrpc": "2.0",
     #     "id": 0
     # }
-    response = requests.post(
-        url, data=json.dumps(payload), headers=headers).json()
+    payload = {
+        "method": "get_all_transaction",
+        "params": {"address": "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1"},
+        "jsonrpc": "2.0",
+        "id": 0
+    }
+    for i in range(1):
+        response = requests.post(
+            url, data=json.dumps(payload), headers=headers).json()
+    
+        print(response)
 
-    print(response)
-{
-	"result": {
-		"address": "0xe3A81Fc2C6d38763D2C167A602B1b540554f57F4",
-		"keystore": {
-			"address": "e3a81fc2c6d38763d2c167a602b1b540554f57f4",
-			"crypto": {
-				"cipher": "aes-128-ctr",
-				"cipherparams": {
-					"iv": "75371729d87a56b9598c69533856a5d3"
-				},
-				"ciphertext": "2119778e59ab0191419c6134423241948e862a8b979258cfa73e4e61a83f2b79",
-				"kdf": "pbkdf2",
-				"kdfparams": {
-					"c": 1000000,
-					"dklen": 32,
-					"prf": "hmac-sha256",
-					"salt": "9acab82ebea752bf921cc408966e8b21"
-				},
-				"mac": "5593bf5c41bf9a3b9fb2ddc7764125b63739d5e39dd649d498444ec7c4c736d1"
-			},
-			"id": "b6875b47-0dca-457e-9d13-236e7a4f15bb",
-			"version": 3
-		}
-	},
-	"id": 0,
-	"jsonrpc": "2.0"
-}
 
 if __name__ == "__main__":
     main()
