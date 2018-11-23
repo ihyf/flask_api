@@ -7,6 +7,8 @@ from util.check_fuc import check_kv
 from flask import Flask, Response, request, jsonify
 from eth_account import Account
 from util.pgsql_db import get_conn, fetchall
+from mnemonic.mnemonic import Mnemonic
+from util.mnemonic_utils import mnemonic_to_private_key
 
 
 def check_gender(data):
@@ -74,12 +76,20 @@ def create_account(*args, **kwargs):
     # 创建账户
     pwd = kwargs.get("pwd", None)
     if pwd:
-        account = Account.create()
-        private_key = account._key_obj
-        public_key = private_key.public_key
-        address = public_key.to_checksum_address()
-        wallet = Account.encrypt(account.privateKey, pwd)
+        m = Mnemonic('english')
+        mnemonic = m.generate()
+        private_key = mnemonic_to_private_key(mnemonic)
+        account = w3.eth.account.privateKeyToAccount(private_key)
+        address = account.address
+        wallet = Account.encrypt(private_key, pwd)
+        # old version
+        # account = Account.create()
+        # private_key = account._key_obj
+        # public_key = private_key.public_key
+        # address = public_key.to_checksum_address()
+        # wallet = Account.encrypt(account.privateKey, pwd)
         data = {
+            "mnemonic": mnemonic,
             "address": address,
             "keystore": wallet
         }
@@ -192,7 +202,7 @@ def export_private(*args, **kwargs):
 
 @api_add
 def get_all_transaction(*args, **kwargs):
-    # 交易列表 待找方法
+    # 交易列表
     address = kwargs.get("address", None)
     necessary_keys = ["address"]
     check = check_kv(kwargs, necessary_keys)
