@@ -8,7 +8,7 @@ pragma solidity ^0.4.21;
 // we should use libraries for common utility functions
 //  source https://github.com/ethereum/dapp-bin/tree/master/library
 // Library only compiled once and used again and again
-import "stringUtils.sol";
+import "contracts/stringUtils.sol";
 
 
 contract userRecords {

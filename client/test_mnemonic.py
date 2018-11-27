@@ -9,6 +9,9 @@ private_key = mnemonic_to_private_key(mnemonic)
 account = w3.eth.account.privateKeyToAccount(private_key)
 address = account.address
 wallet = Account.encrypt(private_key, "112")
+print(mnemonic)
+print(private_key.hex())
+print(address)
 print(wallet)
 # private_key = account._key_obj
 # public_key = private_key.public_key

@@ -57,7 +57,7 @@ def user_contract(*args, **kwargs):
     # Wait for transaction to be mined...
     w3.eth.waitForTransactionReceipt(tx_hash)
     user_data = user.functions.getUser().call()
-    return jsonify({"data": user_data}), 200
+    return {"data": user_data}
 
 
 @api_add
@@ -207,7 +207,8 @@ def get_all_transaction(*args, **kwargs):
     necessary_keys = ["address"]
     check = check_kv(kwargs, necessary_keys)
     if check == "Success":
-        sql = """select hash,from1,to1,value1 from transaction_db where from1='{}' or to1='{}'""".format(address,address)
+        sql = """select hash,from1,to1,value1 from transaction_db where from1='{}' or to1='{}'"""\
+            .format(address, address)
         conn = get_conn()
         result_list = fetchall(conn, sql)
         transaction_list = []
