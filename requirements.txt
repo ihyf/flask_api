@@ -32,8 +32,6 @@ pipreqs==0.4.9
 psycopg2==2.7.6.1
 py-solc==3.2.0
 pycryptodome==3.7.0
-pypiwin32==223
-pywin32==224
 requests==2.20.0
 rlp==1.0.3
 semantic-version==2.6.0
