@@ -31,6 +31,30 @@ def my_method(*args, **kwargs):
 
 
 @api_add
+def voting_contract(*args, **kwargs):
+    w3.eth.defaultAccount = w3.eth.accounts[1]
+    
+    with open("data_voting.json", 'r') as f:
+        datastore = json.load(f)
+    abi = datastore["abi"]
+    contract_address = datastore["contract_address"]
+    
+    # Create the contract instance with the newly-deployed address
+    voting = w3.eth.contract(
+        address=contract_address, abi=abi,
+    )
+    voting_list = kwargs.get("voting_list", None)
+    tx_hash = voting.functions.setUpVote(
+        voting_list
+    )
+    tx_hash = tx_hash.transact()
+    # Wait for transaction to be mined...
+    w3.eth.waitForTransactionReceipt(tx_hash)
+    # user_data = voting.functions.getUser().call()
+    return {"data": "voting ok"}
+
+
+@api_add
 def user_contract(*args, **kwargs):
     # 测试合约
     w3.eth.defaultAccount = w3.eth.accounts[1]
