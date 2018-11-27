@@ -101,6 +101,9 @@ contract Voting{
         }
         return string(bytesStringTrimmed);
     }
-    
+
+    function getNum(uint number) pure public returns(uint){
+        return number;
+    }
     
 }
