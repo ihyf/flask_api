@@ -40,7 +40,7 @@ def compile_voting():
         }
         json.dump(data, outfile, indent=4, sort_keys=True)
 
-    return "voting ok"
+    return "compile voting ok"
 
 
 if __name__ == '__main__':
