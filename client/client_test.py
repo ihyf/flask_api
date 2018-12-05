@@ -51,7 +51,7 @@ def main():
     #     "id": 0
     # }
     payload = {
-        "method": "get_all_transaction",
+        "method": "test1",
         "params": {"address": "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1"},
         "jsonrpc": "2.0",
         "id": 0

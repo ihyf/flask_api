@@ -6,7 +6,7 @@ s = "hyf"
 from util.check_fuc import to_byte32
 # s = to_byte32("hyf")
 payload = {
-        "method": "voting_contract",
+        "method": "play_contract1",
         "params": {"voting_list": "aaa"},
         "jsonrpc": "2.0",
         "id": 0

@@ -31,6 +31,31 @@ def my_method(*args, **kwargs):
 
 
 @api_add
+def transfer_contract(*args, **kwargs):
+    # 调用合约公共接口
+    necessary_keys = ["account", "contract_name", "func_name", "func_param"]
+    check = check_kv(kwargs, necessary_keys)
+    if check == "Success":
+        account = kwargs.get("account", None)
+        contract_name = kwargs.get("contract_name", None)
+        func_name = kwargs.get("func_name", None)
+        func_param = kwargs.get("func_param", None)
+        w3.eth.defaultAccount = account
+        with open("json_files/data_{}.json".format(contract_name), 'r') as f:
+            datastore = json.load(f)
+        abi = datastore["abi"]
+        contract_address = datastore["contract_address"]
+        contract_name = w3.eth.contract(address=contract_address, abi=abi)
+        tx_hash = contract_name.functions.func_name(
+            func_param
+        )
+        w3.eth.waitForTransactionReceipt(tx_hash)
+        return {"data": "{} ok".format(func_name)}
+    else:
+        return {"error": check}
+
+    
+@api_add
 def voting_contract(*args, **kwargs):
     w3.eth.defaultAccount = w3.eth.accounts[1]
     

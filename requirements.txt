@@ -42,3 +42,4 @@ web3==4.8.1
 websockets==6.0
 Werkzeug==0.14.1
 yarg==0.1.9
+cryptography
