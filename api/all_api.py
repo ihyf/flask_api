@@ -33,7 +33,7 @@ def my_method(*args, **kwargs):
 @api_add
 def transfer_contract(*args, **kwargs):
     # 调用合约公共接口
-    necessary_keys = ["account", "contract_name", "func_name", "func_param"]
+    necessary_keys = ["account", "contract_name", "func_name"]
     check = check_kv(kwargs, necessary_keys)
     if check == "Success":
         account = kwargs.get("account", None)
@@ -46,10 +46,10 @@ def transfer_contract(*args, **kwargs):
         abi = datastore["abi"]
         contract_address = datastore["contract_address"]
         contract_name = w3.eth.contract(address=contract_address, abi=abi)
-
+        account = w3.toChecksumAddress(account)
         if "get" not in func_name:
             tx_hash = eval("contract_name.functions.{func_name}({func_param})."
-                           "transact({{'from': {account}, 'value': w3.toWei(1, 'ether')}})".
+                           "transact({{'from': '{account}', 'value': w3.toWei(1, 'ether')}})".
                            format(contract_name=contract_name, func_name=func_name,
                                   func_param=func_param, account=account))
             w3.eth.waitForTransactionReceipt(tx_hash)
@@ -58,6 +58,11 @@ def transfer_contract(*args, **kwargs):
             result = eval("contract_name.functions.{func_name}({func_param}).call()".
                           format(contract_name=contract_name, func_name=func_name, func_param=func_param))
             return {"data": result}
+        tx_hash = contract_name.functions.func_name(
+            func_param
+        )
+        w3.eth.waitForTransactionReceipt(tx_hash)
+        return {"data": "{} ok".format(func_name)}
     else:
         return {"error": check}
 

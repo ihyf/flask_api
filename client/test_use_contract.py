@@ -17,10 +17,10 @@ a1 = "0x0bee62b2b06bd4ecf8c14444b076bbfe28bf2889"
 payload = {
         "method": "transfer_contract",
         "params": {
-            "account": a1,
+            "account": a0,
             "contract_name": "play",
-            "func_name": "getRandom",
-            "func_param": ""
+            "func_name": "betting",
+            "func_param": "True"
         },
         "jsonrpc": "2.0",
         "id": 0

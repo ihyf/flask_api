@@ -33,7 +33,7 @@ contract Play{
     }
 
     //获得结果
-    function result() payable public onlyOwner returns(uint){
+    function getResult() payable public onlyOwner returns(uint){
         bool result;
         uint number;
         address[] memory champion;

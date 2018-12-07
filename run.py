@@ -10,9 +10,14 @@ from werkzeug.contrib.fixers import ProxyFix
 from util.compile_solidity_utils import deploy_n_transact
 from util.upload import Upload
 from flask import request
+from util.ext import db
 
 app = create_app()
 app.wsgi_app = ProxyFix(app.wsgi_app)
+with app.app_context():
+    db.init_app(app)
+with app.app_context():
+    db.create_all()
 html = """
     <!DOCTYPE html>
     <title>Contract Upload</title>

@@ -12,24 +12,20 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 class EthCert(object):
 
-    def __init__(self):
+    def __init__(self, username):
         cert_dir = os.path.dirname(os.path.realpath(__file__))
         self.pems = os.path.join(cert_dir, "pems")
-        self.pems_user_dir = None
-        self.private_key = None
-        self.public_key = None
-        self.thiscert = None
-
-    def init_key_path(self, username):
-        if not username:
-            print("need username!")
-            return False
         self.pems_user_dir = os.path.join(self.pems, username)
+        if not os.path.isdir(self.pems_user_dir):
+            os.mkdir(self.pems_user_dir)
         self.thiscert = {
             "private": os.path.join(self.pems, username, "private_key.pem"),
             "public": os.path.join(self.pems, username, "public_key.pem"),
         }
-        return True
+        self.private_key = None
+        self.public_key = None
+        self.style = None
+        self.error = ""
 
     def load_private_public_key(self):
         try:
@@ -42,7 +38,7 @@ class EthCert(object):
             with open(self.thiscert['public'], 'rb') as kfd:
                 self.public_key = load_pem_public_key(kfd.read(), default_backend())
         except Exception as e:
-            print(f"{e}")
+            self.error = f"{e}"
             return False
         return True
 
@@ -55,7 +51,7 @@ class EthCert(object):
                     backend=default_backend()
                 )
         except Exception as e:
-            print(f"{e}")
+            self.error = f"{e}"
             return False
         return True
 
@@ -64,7 +60,7 @@ class EthCert(object):
             with open(self.thiscert['public'], 'rb') as kfd:
                 self.public_key = load_pem_public_key(kfd.read(), default_backend())
         except Exception as e:
-            print(f"{e}")
+            self.error = f"{e}"
             return False
         return True
 
@@ -78,37 +74,39 @@ class EthCert(object):
 
     def generate(self, size=2048):
         # Generate the public/private key pair.
-        if not os.path.isdir(self.pems_user_dir):
-            os.mkdir(self.pems_user_dir)
         private_key = rsa.generate_private_key(
             public_exponent=65537,
             key_size=size,
             backend=default_backend(),
         )
+        self.private_key = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+        self.public_key = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        return True
+
+    def save(self):
         try:
             # Save the private key to a file.
             with open(self.thiscert['private'], 'wb') as f:
-                f.write(
-                    private_key.private_bytes(
-                        encoding=serialization.Encoding.PEM,
-                        format=serialization.PrivateFormat.TraditionalOpenSSL,
-                        encryption_algorithm=serialization.NoEncryption(),
-                    )
-                )
+                f.write(self.private_key)
             # Save the public key to a file.
             with open(self.thiscert['public'], 'wb') as f:
-                f.write(
-                    private_key.public_key().public_bytes(
-                        encoding=serialization.Encoding.PEM,
-                        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-                    )
-                )
+                f.write(self.public_key)
         except Exception as e:
-            print(f'{e}')
+            self.error = f"{e}"
             return False
         return True
 
     def sign(self, origin_data):
+        if self.private_key is None:
+            self.error = "load private key first"
+            return False
         signature = base64.b64encode(
             self.private_key.sign(
                 self.convert(origin_data),
@@ -122,6 +120,9 @@ class EthCert(object):
         return signature
 
     def sign2(self, origin_data):
+        if self.private_key is None:
+            self.error = "load private key first"
+            return False
         signature = base64.b64encode(self.private_key.sign(
                 self.convert(origin_data),
                 padding.PKCS1v15(),
@@ -131,6 +132,9 @@ class EthCert(object):
         return signature
 
     def verify(self, origin_data, signature):
+        if self.public_key is None:
+            self.error = "load public key first"
+            return False
         signature_decode = base64.b64decode(signature)
         try:
             self.public_key.verify(
@@ -143,11 +147,14 @@ class EthCert(object):
                 hashes.SHA256(),
             )
         except InvalidSignature as e:
-            print('ERROR: signature failed verification!')
+            self.error = f'ERROR: signature failed verification! {e}'
             return False
         return True
 
     def verify2(self, origin_data, signature):
+        if self.public_key is None:
+            self.error = "load public key first"
+            return False
         signature_decode = base64.b64decode(signature)
         try:
             self.public_key.verify(
@@ -157,7 +164,7 @@ class EthCert(object):
                 hashes.SHA256(),
             )
         except InvalidSignature:
-            print("ERROR: signature failed verification!")
+            self.error = "ERROR: signature failed verification!"
             return False
         return True
 
@@ -174,8 +181,8 @@ class EthCert(object):
         return encrypt_data_encode
 
     def decrypt(self, encrypt_data):
-        encrypt_data_decode = base64.b64decode(encrypt_data)
         try:
+            encrypt_data_decode = base64.b64decode(encrypt_data)
             decrypt_data = self.private_key.decrypt(
                 self.convert(encrypt_data_decode),
                 padding.OAEP(
@@ -185,16 +192,17 @@ class EthCert(object):
                 )
             )
         except Exception as e:
-            print("ERROR: Decryption failed!")
+            self.error = f"ERROR: Decryption failed! {e}"
             return False
         return decrypt_data
 
 
 if __name__ == "__main__":
-    ec = EthCert()
-    ec.init_key_path("self")
+    ec = EthCert("zzy")
     # 生成私钥与公钥, 长度默认为2048
-    # ec.generate(4096)
+    ec.generate(4096)
+    if not ec.save():
+        print(ec.error)
     # 加载private/public
     # ec.load_private_key()
     # ec.load_public_key()
@@ -212,7 +220,7 @@ if __name__ == "__main__":
         ddata = ec.decrypt(edata)
         print(ddata)
     else:
-        print("init fail.")
+        print(ec.error)
 
 
 
