@@ -40,17 +40,24 @@ def transfer_contract(*args, **kwargs):
         contract_name = kwargs.get("contract_name", None)
         func_name = kwargs.get("func_name", None)
         func_param = kwargs.get("func_param", None)
-        w3.eth.defaultAccount = account
+        account = w3.toChecksumAddress(account)
         with open("json_files/data_{}.json".format(contract_name), 'r') as f:
             datastore = json.load(f)
         abi = datastore["abi"]
         contract_address = datastore["contract_address"]
         contract_name = w3.eth.contract(address=contract_address, abi=abi)
-        tx_hash = contract_name.functions.func_name(
-            func_param
-        )
-        w3.eth.waitForTransactionReceipt(tx_hash)
-        return {"data": "{} ok".format(func_name)}
+
+        if "get" not in func_name:
+            tx_hash = eval("contract_name.functions.{func_name}({func_param})."
+                           "transact({{'from': {account}, 'value': w3.toWei(1, 'ether')}})".
+                           format(contract_name=contract_name, func_name=func_name,
+                                  func_param=func_param, account=account))
+            w3.eth.waitForTransactionReceipt(tx_hash)
+            return {"data": "{} ok".format(func_name)}
+        else:
+            result = eval("contract_name.functions.{func_name}({func_param}).call()".
+                          format(contract_name=contract_name, func_name=func_name, func_param=func_param))
+            return {"data": result}
     else:
         return {"error": check}
 
