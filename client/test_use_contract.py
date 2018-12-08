@@ -14,13 +14,15 @@ a2 = "0xbefddca2dbf1d1ad3da72c334c31c3ab5aac8bd3"
 
 a1 = "0x0bee62b2b06bd4ecf8c14444b076bbfe28bf2889"
 "betting" "getRandom" "result"
+"transfer_contract"
+"luckyNumber_contract"
 payload = {
-        "method": "transfer_contract",
+        "method": "luckyNumber_contract",
         "params": {
             "account": a0,
-            "contract_name": "play",
-            "func_name": "betting",
-            "func_param": "True"
+            "contract_name": "luckyNumber",
+            "func_name": "getBalance",
+            "func_param": ""
         },
         "jsonrpc": "2.0",
         "id": 0

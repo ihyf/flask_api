@@ -6,18 +6,20 @@ from solc import link_code
 from werkzeug.utils import secure_filename
 
 from create_app import create_app
+from util.dbmanager import db_manager
+from util.mysql_db import create_tables
 from werkzeug.contrib.fixers import ProxyFix
 from util.compile_solidity_utils import deploy_n_transact
 from util.upload import Upload
 from flask import request
-from util.ext import db
+# from util.ext import db
 
 app = create_app()
 app.wsgi_app = ProxyFix(app.wsgi_app)
 with app.app_context():
-    db.init_app(app)
-with app.app_context():
-    db.create_all()
+    db_manager.init_app(app)
+    # create_tables()   # 手动创建数据库表
+
 html = """
     <!DOCTYPE html>
     <title>Contract Upload</title>

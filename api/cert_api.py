@@ -1,9 +1,10 @@
 # coding:utf-8
+import json
 from my_dispatcher import api_add
-from flask import request
-from util.ext import db
+from util.dbmanager import db_manager
 from util.mysql_db import Apps
-from cert.eth_certs import EthCert
+# from flask import request
+# from cert.eth_certs import EthCert
 
 
 @api_add
@@ -46,16 +47,23 @@ def bk_app_create(*args, **kwargs):
         app_publickey=kwargs.get("app_publickey", ""),
         app_privateKey=kwargs.get("app_privateKey", ""),
         app_function=kwargs.get("app_function", []),
-        app_status=kwargs.get("app_status", 0)
+        app_status=kwargs.get("app_status", 2)
     )
-    db.session.add(app)
-    db.session.commit()
+    session = db_manager.master()
+    session.add(app)
+    session.commit()
+    session.close()
     return {"result": "ok"}
 
 
 @api_add
 def bk_app_remove(*args, **kwargs):
-    pass
+    app_names = []
+    session = db_manager.slave()
+    for instance in session.query(Apps).order_by(Apps.app_name):
+        app_names.append(instance.app_name)
+    session.close()
+    return {"result": app_names}
 
 
 @api_add
