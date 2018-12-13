@@ -9,23 +9,24 @@ from util.check_fuc import to_byte32
 "play_contract2"
 "get_num"
 "0xd87f9a8fe5e66cf3e1e06d8f6c4774fba4da372731dd2828186fe06aa373669f"
-a0 = "0x3de2a8cceffe9e3dc5022991743ba0ade3765649"
-a2 = "0xbefddca2dbf1d1ad3da72c334c31c3ab5aac8bd3"
+a0 = "0xfb4a28a561fc3a665020d54a55223eb6c3649314"
+a2 = "0x4d2ec296b09f2ca018dfac9c192f3d89881a0865"
 
-a1 = "0x0bee62b2b06bd4ecf8c14444b076bbfe28bf2889"
+a1 = "0x32b4e7246f86ee49a9f82d060cc52b23160f5952"
 "betting" "getRandom" "result"
-"transfer_contract"
-"luckyNumber_contract"
+
+"transfer_contract" "getNumPlayerArr"  "setChooseGame" "tBetting" "tResult"
 payload = {
-        "method": "luckyNumber_contract",
+        "method": "transfer_contract",
         "params": {
-            "account": a0,
+            "account": a1,
             "contract_name": "luckyNumber",
-            "func_name": "getBalance",
-            "func_param": ""
+            "func_name": "getbonusMoney",
+            "func_param": "",
+            "value": 2
         },
         "jsonrpc": "2.0",
-        "id": 0
+        "id": 11
     }
 
 url = "http://192.168.1.14:8080/api"

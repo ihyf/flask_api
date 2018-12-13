@@ -1,0 +1,174 @@
+# coding:utf-8
+
+import requests
+import json
+import time
+from util.mysql_db import ZzyKey
+from util.dbmanager import db_manager
+from util.mysql_db import Apps
+from cert.eth_certs import EthCert
+
+ec = EthCert("Joy")
+ec.load_key_from_file()
+ec.serialization()
+send = {
+    "name": "leslie",
+    "sex": "m",
+    "age": 7,
+    "desc": "xxxx",
+    "time": int(time.time()),
+}
+send_str = str(send)
+sign = ec.sign(send_str)
+print(sign)
+ec_zzy = EthCert("zzy")
+ec_zzy.load_key_from_file()
+ec_zzy.serialization()
+encrypt = ec_zzy.encrypt(send_str)
+print(encrypt)
+decrypt = ec_zzy.decrypt(encrypt)
+print(ec_zzy.private_key_str)
+print(decrypt)
+
+
+appid = "Joy"
+# 哈希data数据，限制多次请求的问题
+
+# 查询appid
+app_publickey = b"""-----BEGIN RSA PRIVATE KEY-----
+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
+-----END RSA PRIVATE KEY-----
+"""
+
+ec_app = EthCert()
+ec_app.init_key(public_key_str=app_publickey)
+ec_app.serialization()
+# 查询自己的私钥公钥
+private_key = b"""-----BEGIN RSA PRIVATE KEY-----
+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
+-----END RSA PRIVATE KEY-----
+"""
+public_key = b"""-----BEGIN PUBLIC KEY-----
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAxfG9PhOXubDaHOU2pmRx
+m41Wffp9TJqZUy9WiNarNXiHPvCmD28uq3hXVfov2eXYD9emRs/YrnUxt44RiUqr
+ocWxok6I3KD9jjeFpqve99R2VzsXWyEPgQmueKb5Kzr7k+ZEe/MbzNUYiyJnihvf
+zBw9xijk+4P2qqmVF2u0YIMVCnR2rP0cHYEfcc20ckZzzb32A/NM0U/SuOVI0z5N
+BmhWVisAFbn0hojp1cqKvoqN0jQYcgTRNiEWbAjv5WkDcn/rpZcAAVj9HvpXxYNR
+VS2peqml1J98QkW7N8aFDsDnKh1jTZSS2lm+UBHcLh+niwM+MX0ad7sa+5+UI9PH
+jKHTJYfTA1mAxAjWjLNOFeuYsx2jDfCJaRdIHg6wYYAlfhvjJdY108IdblbfFyOC
+bWsDYq3b4AgIF5n3Mvd4Cumg3tYOHLboXrzXZl0tdurNKFdLvCXcMs0De44TqEj9
+g+E3O8pqxHanucFVOeLVSZA7hTCu9MvYBlXu6WgBuEGxiEx9qv/ImtRCLmDQ0qNp
+sD34uEcySeEPfjLqFJGaJSNuM4k1/nxy6kLMdq9x+rupcz89vkLf9FS5yVIvx/fm
+rr9FXRFvzNe8G5cC5xe1A8N7Ye3wv+9KuFt7dCMJxc7s4M6IsrJwtWm4CISY78BN
+gnx0pWSDFAyoQGhj6OEGjyECAwEAAQ==
+-----END PUBLIC KEY-----
+"""
+print(private_key)
+ec_zzy = EthCert()
+ec_zzy.init_key(private_key, public_key)
+ec_zzy.serialization()
+# 用户自己的私钥解密
+decrypt_data = ec_zzy.decrypt(decrypt)
+if not decrypt_data:
+    print(ec_zzy.error)
+else:
+    # 用app的公钥对解密数据进行验证签名
+    if not ec_app.verify(decrypt_data, sign):
+        print(ec_app.error)
+

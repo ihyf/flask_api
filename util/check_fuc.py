@@ -25,3 +25,7 @@ def to_byte32(s):
         print('More characters needed: ' + str(32 - len1))
         s = bytes(s.ljust(32, '0'), 'utf-8')
     return s
+
+
+def bytes_str_to_dict(b):
+    return eval(str(b, encoding="utf-8"))

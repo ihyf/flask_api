@@ -12,55 +12,102 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 class EthCert(object):
 
-    def __init__(self, username):
+    def __init__(self, username="anonymous"):
         cert_dir = os.path.dirname(os.path.realpath(__file__))
         self.pems = os.path.join(cert_dir, "pems")
         self.pems_user_dir = os.path.join(self.pems, username)
-        if not os.path.isdir(self.pems_user_dir):
-            os.mkdir(self.pems_user_dir)
         self.thiscert = {
             "private": os.path.join(self.pems, username, "private_key.pem"),
             "public": os.path.join(self.pems, username, "public_key.pem"),
         }
+        self.private_key_str = None
+        self.public_key_str = None
         self.private_key = None
         self.public_key = None
         self.style = None
         self.error = ""
 
-    def load_private_public_key(self):
+    def init_dir(self, username):
+        """
+        设置用户目录
+        :param username:
+        :return:
+        """
+        self.pems_user_dir = os.path.join(self.pems, username)
+        self.thiscert = {
+            "private": os.path.join(self.pems, username, "private_key.pem"),
+            "public": os.path.join(self.pems, username, "public_key.pem"),
+        }
+
+    def generate(self, size=2048):
+        """
+        生成公钥和私钥
+        :param size:
+        :return:
+        """
+        # Generate the public/private key pair.
+        private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=size,
+            backend=default_backend(),
+        )
+        self.private_key_str = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+        self.public_key_str = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        return True
+
+    def load_key_from_file(self):
+        """
+        从用户的目录中读取公钥或者私钥，读取到的文本会保存在变量中
+        :return:
+        """
         try:
-            with open(self.thiscert['private'], 'rb') as kfd:
-                self.private_key = serialization.load_pem_private_key(
-                    kfd.read(),
-                    password=None,
-                    backend=default_backend()
-                )
-            with open(self.thiscert['public'], 'rb') as kfd:
-                self.public_key = load_pem_public_key(kfd.read(), default_backend())
+            if os.path.isfile(self.thiscert['private']):
+                with open(self.thiscert['private'], 'rb') as kfd:
+                    self.private_key_str = kfd.read()
+            if os.path.isfile(self.thiscert['public']):
+                with open(self.thiscert['public'], 'rb') as kfd:
+                    self.public_key_str = kfd.read()
+            if not self.private_key_str and not self.public_key_str:
+                self.error = "provide private or public key"
+                return False
         except Exception as e:
             self.error = f"{e}"
             return False
         return True
 
-    def load_private_key(self):
+    def init_key(self, private_key_str=None, public_key_str=None):
+        if not private_key_str and not public_key_str:
+            self.error = "should provide private or public key"
+            return False
+        if private_key_str:
+            self.private_key_str = self.convert(private_key_str)
+        if public_key_str:
+            self.public_key_str = self.convert(public_key_str)
+        return True
+
+    def serialization(self):
+        """
+        序列化公钥和私钥，用于加密、解密、签名、验签
+        :return:
+        """
         try:
-            with open(self.thiscert['private'], 'rb') as kfd:
+            if self.private_key_str:
                 self.private_key = serialization.load_pem_private_key(
-                    kfd.read(),
+                    self.private_key_str,
                     password=None,
                     backend=default_backend()
                 )
+            if self.public_key_str:
+                self.public_key = load_pem_public_key(self.public_key_str, default_backend())
         except Exception as e:
-            self.error = f"{e}"
-            return False
-        return True
-
-    def load_public_key(self):
-        try:
-            with open(self.thiscert['public'], 'rb') as kfd:
-                self.public_key = load_pem_public_key(kfd.read(), default_backend())
-        except Exception as e:
-            self.error = f"{e}"
+            self.error = f"serialization error: {e}"
             return False
         return True
 
@@ -72,40 +119,34 @@ class EthCert(object):
         else:
             return bytes(str(origin_str), encoding='utf8')
 
-    def generate(self, size=2048):
-        # Generate the public/private key pair.
-        private_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=size,
-            backend=default_backend(),
-        )
-        self.private_key = private_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.TraditionalOpenSSL,
-            encryption_algorithm=serialization.NoEncryption(),
-        )
-        self.public_key = private_key.public_key().public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo,
-        )
+    def save_file(self):
+        """
+        保存公钥或者私钥到用户目录中
+        :return:
+        """
+        if not os.path.isdir(self.pems_user_dir):
+            os.mkdir(self.pems_user_dir)
+        if self.private_key_str:
+            try:
+                # Save the private key to a file.
+                with open(self.thiscert['private'], 'wb') as f:
+                    f.write(self.private_key_str)
+            except Exception as e:
+                self.error = f"{e}"
+                return False
+        if self.public_key_str:
+            try:
+                # Save the public key to a file.
+                with open(self.thiscert['public'], 'wb') as f:
+                    f.write(self.public_key_str)
+            except Exception as e:
+                self.error = f"{e}"
+                return False
         return True
 
-    def save(self):
-        try:
-            # Save the private key to a file.
-            with open(self.thiscert['private'], 'wb') as f:
-                f.write(self.private_key)
-            # Save the public key to a file.
-            with open(self.thiscert['public'], 'wb') as f:
-                f.write(self.public_key)
-        except Exception as e:
-            self.error = f"{e}"
-            return False
-        return True
-
-    def sign(self, origin_data):
+    def sign2(self, origin_data):
         if self.private_key is None:
-            self.error = "load private key first"
+            self.error = "serialization private key first"
             return False
         signature = base64.b64encode(
             self.private_key.sign(
@@ -119,9 +160,9 @@ class EthCert(object):
         )
         return signature
 
-    def sign2(self, origin_data):
+    def sign(self, origin_data):
         if self.private_key is None:
-            self.error = "load private key first"
+            self.error = "serialization private key first"
             return False
         signature = base64.b64encode(self.private_key.sign(
                 self.convert(origin_data),
@@ -131,12 +172,12 @@ class EthCert(object):
         )
         return signature
 
-    def verify(self, origin_data, signature):
+    def verify2(self, origin_data, signature):
         if self.public_key is None:
-            self.error = "load public key first"
+            self.error = "serialization public key first"
             return False
-        signature_decode = base64.b64decode(signature)
         try:
+            signature_decode = base64.b64decode(signature)
             self.public_key.verify(
                 signature_decode,
                 self.convert(origin_data),
@@ -151,12 +192,12 @@ class EthCert(object):
             return False
         return True
 
-    def verify2(self, origin_data, signature):
+    def verify(self, origin_data, signature):
         if self.public_key is None:
-            self.error = "load public key first"
+            self.error = "serialization public key first"
             return False
-        signature_decode = base64.b64decode(signature)
         try:
+            signature_decode = base64.b64decode(signature)
             self.public_key.verify(
                 signature_decode,
                 self.convert(origin_data),
@@ -169,44 +210,71 @@ class EthCert(object):
         return True
 
     def encrypt(self, origin_data):
-        encrypt_data_encode = base64.b64encode(self.public_key.encrypt(
-                self.convert(origin_data),
-                padding.OAEP(
-                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                    algorithm=hashes.SHA256(),
-                    label=None,
+        if not self.public_key:
+            self.error = "serialization public key first"
+            return False
+        encrypt_length = int(self.public_key.key_size / 8 - 11)
+        bytes_data = self.convert(origin_data)
+        bytes_len = len(origin_data)
+        offset = 0
+        en_res = []
+        while bytes_len - offset > 0:
+            en_res.append(
+                self.public_key.encrypt(
+                    bytes_data[offset: offset + encrypt_length],
+                    padding.PKCS1v15(),
                 )
             )
-        )
+            offset += encrypt_length
+        if bytes_data[offset:]:
+            en_res.append(
+                self.public_key.encrypt(
+                    bytes_data[offset: offset + encrypt_length],
+                    padding.PKCS1v15(),
+                )
+            )
+        encrypt_data_encode = base64.b64encode(b''.join(en_res))
         return encrypt_data_encode
 
     def decrypt(self, encrypt_data):
-        try:
-            encrypt_data_decode = base64.b64decode(encrypt_data)
-            decrypt_data = self.private_key.decrypt(
-                self.convert(encrypt_data_decode),
-                padding.OAEP(
-                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                    algorithm=hashes.SHA256(),
-                    label=None,
-                )
-            )
-        except Exception as e:
-            self.error = f"ERROR: Decryption failed! {e}"
+        if not self.private_key:
+            self.error = "serialization private key first"
             return False
-        return decrypt_data
+        try:
+            bytes_data = self.convert(encrypt_data)
+            decrypt_data = base64.b64decode(bytes_data)
+            decrypt_length = int(self.private_key.key_size / 8)
+            bytes_len = len(decrypt_data)
+            de_res = []
+            offset = 0
+            while bytes_len - offset > 0:
+                de_res.append(
+                    self.private_key.decrypt(
+                        decrypt_data[offset: offset + decrypt_length],
+                        padding.PKCS1v15(),
+                    )
+                )
+                offset += decrypt_length
+            if decrypt_data[offset: offset + decrypt_length]:
+                de_res.append(
+                    self.private_key.decrypt(
+                        decrypt_data[offset: offset + decrypt_length],
+                        padding.PKCS1v15(),
+                    )
+                )
+            decrypt_data_res = b''.join(de_res)
+        except Exception as e:
+            self.error = f"ERROR: Decryption failed!"
+            return False
+        return decrypt_data_res
 
 
 if __name__ == "__main__":
-    ec = EthCert("zzy")
+    ec = EthCert("text")
     # 生成私钥与公钥, 长度默认为2048
     ec.generate(4096)
-    if not ec.save():
-        print(ec.error)
-    # 加载private/public
-    # ec.load_private_key()
-    # ec.load_public_key()
-    if ec.load_private_public_key():
+    if ec.save_file():
+        ec.serialization()
         origin = "XiaMen City"
         # 数据签名与验证方式一
         sign = ec.sign(origin)

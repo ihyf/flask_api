@@ -1,7 +1,8 @@
 # coding:utf-8
 from sqlalchemy import Column
-from sqlalchemy import Integer, String, Text, JSON
+from sqlalchemy import Integer, String, Text, JSON, DATETIME
 from util.dbmanager import db_manager
+from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -25,29 +26,67 @@ class User(Base):
 
 class Apps(Base):
     __tablename__ = 'apps'
-    id = Column(Integer, autoincrement=True, primary_key=True)
-    app_name = Column(String(200), primary_key=True)
-    app_desc = Column(String(200))
-    app_ip = Column(JSON)
-    app_ns = Column(JSON)
-    app_publickey = Column(Text)
-    app_privateKey = Column(Text)
-    app_function = Column(JSON)
-    app_status = Column(Integer)
+    id = Column(Integer, autoincrement=True, primary_key=True, nullable=False)
+    appid = Column(String(200), primary_key=True, nullable=False, unique=True)
+    desc = Column(String(200), nullable=False)
+    ip = Column(JSON, nullable=False)
+    ns = Column(JSON, nullable=False)
+    cli_publickey = Column(Text, nullable=False)
+    cli_privatekey = Column(Text, nullable=False)
+    srv_publickey = Column(Text, nullable=False)
+    srv_privatekey = Column(Text, nullable=False)
+    srv = Column(JSON, nullable=False)
+    status = Column(Integer, nullable=False)
 
 
-class Apps2(Base):
-    __tablename__ = 'apps2'
+class Accounts(Base):
+    __tablename__ = "accounts"
     id = Column(Integer, autoincrement=True, primary_key=True)
-    app_name = Column(String(200), primary_key=True)
-    app_desc = Column(String(200))
-    app_ip = Column(JSON)
-    app_ns = Column(JSON)
-    app_publickey = Column(Text)
-    app_privateKey = Column(Text)
-    app_function = Column(JSON)
-    app_status = Column(Integer)
-    app_request_times = Column(Integer)
+    address = Column(String(100), primary_key=True)
+    balance = Column(String(20))
+    create_time = Column(String(20))
+    type = Column(String(10))
+    
+
+class TransactionRecord(Base):
+    __tablename__ = "transaction_record"
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    from_address = Column(String(50))
+    to_address = Column(String(50))
+    value = Column(String(20))
+    transaction_time = Column(String(20))
+    tx_hash = Column(String(100))
+    type = Column(String(10))
+    
+
+class DeployContracts(Base):
+    __tablename__ = "deploy_contracts"
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    address = Column(String(200))
+    tx_hash = Column(String(100))
+    deploy_time = Column(String(20))
+    pay_gas = Column(String(20))
+    contract_address = Column(String(100))
+    
+
+class Contracts(Base):
+    __tablename__ = "contracts"
+    contract_id = Column(Integer, autoincrement=True, primary_key=True)
+    contract_address = Column(String(100), primary_key=True)
+
+
+class Tokens(Base):
+    __tablename__ = "tokens"
+    token_id = Column(Integer, autoincrement=True, primary_key=True)
+    token_full_name = Column(String(20), primary_key=True)
+    token_nick_name = Column(String(10), primary_key=True)
+
+
+class Services(Base):
+    __tablename__ = "services"
+    service_id = Column(Integer, autoincrement=True, primary_key=True)
+    service_name = Column(String(20), primary_key=True)
+    
 
 
 def create_tables():

@@ -21,12 +21,14 @@ def separate_main_n_link(file_path, contracts):
     return main, link
 
 
-def deploy_contract(contract_interface):
+def deploy_contract(contract_interface, account=w3.eth.accounts[1]):
+    account = w3.toChecksumAddress(account)
+
     # Instantiate and deploy contract
     contract = w3.eth.contract(
         abi=contract_interface['abi'], bytecode=contract_interface['bin'])
     # Get transaction hash from deployed contract
-    tx_hash = contract.deploy(transaction={'from': w3.eth.accounts[1]})
+    tx_hash = contract.deploy(transaction={'from': account})
     # Get tx receipt to get contract address
     tx_receipt = w3.eth.getTransactionReceipt(tx_hash)
     return tx_receipt['contractAddress']

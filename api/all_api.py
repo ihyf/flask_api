@@ -1,7 +1,9 @@
 # coding:utf-8
+import json
+import logging
+import time
 from my_dispatcher import api_add, api
 from marshmallow import Schema, fields, ValidationError
-import json
 from util.compile_solidity_utils import w3
 from util.check_fuc import check_kv
 from flask import Flask, Response, request, jsonify
@@ -9,6 +11,9 @@ from eth_account import Account
 from util.pgsql_db import get_conn, fetchall
 from mnemonic.mnemonic import Mnemonic
 from util.mnemonic_utils import mnemonic_to_private_key
+from cert.eth_checkout import check_conn
+from util.check_fuc import bytes_str_to_dict
+from util.mysql_db import db_manager, Accounts, TransactionRecord
 
 
 def check_gender(data):
@@ -40,6 +45,7 @@ def transfer_contract(*args, **kwargs):
         contract_name = kwargs.get("contract_name", None)
         func_name = kwargs.get("func_name", None)
         func_param = kwargs.get("func_param", None)
+        value = kwargs.get("func_param", None)
         
         with open("json_files/data_{}.json".format(contract_name), 'r') as f:
             datastore = json.load(f)
@@ -48,22 +54,24 @@ def transfer_contract(*args, **kwargs):
         contract_name = w3.eth.contract(address=contract_address, abi=abi)
         account = w3.toChecksumAddress(account)
         
-        if "get" and "set" not in func_name:
+        if "get" not in func_name and "set" not in func_name:
             tx_hash = eval("contract_name.functions.{func_name}({func_param})."
-                           "transact({{'from': '{account}', 'value': w3.toWei(1, 'ether')}})".
+                           "transact({{'from': '{account}', 'value': w3.toWei({value}, 'ether')}})".
                            format(contract_name=contract_name, func_name=func_name,
-                                  func_param=func_param, account=account))
+                                  func_param=func_param, account=account, value=value))
             w3.eth.waitForTransactionReceipt(tx_hash)
             return {"data": "{} ok".format(func_name)}
         elif "set" in func_name:
-            eval("contract_name.functions.{func_name}({func_param})."
-                 .format(contract_name=contract_name, func_name=func_name, func_param=func_param))
-            return {"data": "{} ok".format(func_name)}
+            tx_hash = eval("contract_name.functions.{func_name}({func_param})."
+                           "transact({{'from': '{account}', 'value': w3.toWei(0, 'ether')}})".
+                           format(contract_name=contract_name, func_name=func_name,
+                                  func_param=func_param, account=account))
+            w3.eth.waitForTransactionReceipt(tx_hash)
+            return {"data": "set {} ok".format(func_name)}
         elif "get" in func_name:
             result = eval("contract_name.functions.{func_name}({func_param}).call()".
                           format(contract_name=contract_name, func_name=func_name, func_param=func_param))
             return {"data": result}
-        return {"data": "{} ok".format(func_name)}
     else:
         return {"error": check}
 
@@ -134,9 +142,11 @@ def create_account_11(*args, **kwargs):
     
     
 @api_add
+@check_conn(request)
 def create_account(*args, **kwargs):
     # 创建账户
-    pwd = kwargs.get("pwd", None)
+    data = kwargs['decrypt']
+    pwd = data.get("pwd", None)
     if pwd:
         m = Mnemonic('english')
         mnemonic = m.generate()
@@ -150,25 +160,65 @@ def create_account(*args, **kwargs):
         # public_key = private_key.public_key
         # address = public_key.to_checksum_address()
         # wallet = Account.encrypt(account.privateKey, pwd)
-        data = {
+        
+        # 插入数据库
+        create_time = time.strftime("%Y-%m-%d %X", time.localtime())
+        session = db_manager.master()
+        new_account = Accounts(address=address, balance=0,
+                               create_time=create_time, type=1)
+        session.add(new_account)
+        session.commit()
+        session.close()
+        
+        result = {
             "mnemonic": mnemonic,
             "address": address,
-            "keystore": wallet
+            "keystore": wallet,
+            "private_key": private_key.hex()
         }
-        return data
+        ec_cli = kwargs['ec_cli']
+        ec_srv = kwargs['ec_srv']
+        sign = ec_srv.sign(result).decode()
+        result = ec_cli.encrypt(result).decode()
+        return {
+            "code": "success",
+            "sign": sign,
+            "data": result
+        }
     else:
-        return {"error": "no password"}
+        return {
+            "code": "fail",
+            "error": "no password"
+        }
 
 
 @api_add
+@check_conn(request)
 def get_balance(*args, **kwargs):
     # 获取余额
-    account = kwargs.get("account", None)
-    if account:
-        eth_balance = w3.eth.getBalance(account, 'latest')
-        return {"eth_balance": eth_balance}
+    data = kwargs['decrypt']
+    address = data.get("address", None)
+    if address:
+        eth_balance = w3.fromWei(w3.eth.getBalance(address, 'latest'), 'ether')
+        eth_balance = str(eth_balance)
+        d = {
+            "eth_balance": eth_balance
+        }
+        ec_cli = kwargs['ec_cli']
+        ec_srv = kwargs['ec_srv']
+        sign = ec_srv.sign(d).decode()
+        d = ec_cli.encrypt(d).decode()
+        
+        return {
+            "code": "success",
+            "sign": sign,
+            "data": d
+        }
     else:
-        return {"error": "no account"}
+        return {
+            "code": "fail",
+            "error": "no address"
+        }
     
 
 @api_add
@@ -194,72 +244,127 @@ def send_transaction_11(*args, **kwargs):
             tx_hash = tx_hash_bytes.hex()
             return {"tx_hash": tx_hash}
         else:
-            return {"error": "pwssword not ture!"}
+            return {"error": "password not right!"}
     else:
         return {"error": check}
     
 
 @api_add
+@check_conn(request)
 def send_transaction(*args, **kwargs):
     # 裸交易
-    necessary_keys = ["to_address", "from_address", "value", "pwd", "keystore"]
-    check = check_kv(kwargs, necessary_keys)
+    data = kwargs['decrypt']
+    necessary_keys = ["to_address", "value", "pwd", "keystore", "gas_limit", "gas_price"]
+    check = check_kv(data, necessary_keys)
     if check == "Success":
-        to_address = kwargs.get("to_address", None)
-        value = kwargs.get("value", None)
-        pwd = kwargs.get("pwd", None)
-        keystore = kwargs.get("keystore", None)
+        to_address = data.get("to_address", None)
+        to_address = w3.toChecksumAddress(to_address)
+        value = data.get("value", None)
+        pwd = data.get("pwd", None)
+        keystore = data.get("keystore", None)
+        gas_limit = data.get("gas_limit", None)
+        gas_price = data.get("gas_price", None)
         private_key = Account.decrypt(json.dumps(keystore), pwd)
-        account = Account.privateKeyToAccount("162a0fcdf157ef4b78e0b6caccf1fa2dabc77c8f053342454a0035dac36a01b6")
+        account = Account.privateKeyToAccount("7af5932779d6d3323af7709f6de598828e872e75cf255a482db9e006eb95abd7")
+        from_address = account.address
         nonce = w3.eth.getTransactionCount(account.address)
         transaction_dict = {
             'to': to_address,
             'value': w3.toWei(value, 'ether'),
-            'gas': 200000,
-            'gasPrice': w3.toWei(3000, 'gwei'),
+            'gas': gas_limit,
+            'gasPrice': w3.toWei(gas_price, 'gwei'),
             'nonce': nonce,
             'chainId': 1
         }
         signed = account.signTransaction(transaction_dict)
         tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
-        # receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-        return {"tx_hash": tx_hash.hex()}
+        receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+        if receipt:
+            # 插入数据库
+            transaction_time = time.strftime("%Y-%m-%d %X", time.localtime())
+            session = db_manager.master()
+            new_tr = TransactionRecord(from_address=from_address, to_address=to_address,
+                                       value=value, transaction_time=transaction_time,
+                                       tx_hash=tx_hash.hex(), type=1)
+            session.add(new_tr)
+            session.commit()
+            session.close()
+            
+        d = {
+            "tx_hash": tx_hash.hex()
+        }
+
+        ec_cli = kwargs['ec_cli']
+        ec_srv = kwargs['ec_srv']
+        sign = ec_srv.sign(d).decode()
+        d = ec_cli.encrypt(d).decode()
+        
+        return {
+            "code": "success",
+            "sign": sign,
+            "data": d
+        }
     else:
-        return {"error": check}
+        return {"code": "fail", "error": check}
 
 
 @api_add
+@check_conn(request)
 def import_private_key(*args, **kwargs):
     # 导入私钥
-    private_key = kwargs.get("private_key", None)
-    pwd = kwargs.get("pwd", None)
+    data = kwargs['decrypt']
+    private_key = data.get("private_key", None)
+    pwd = data.get("pwd", None)
     if private_key and pwd:
         account = Account.privateKeyToAccount(private_key)
         privateKey = account._key_obj
         publicKey = privateKey.public_key
         address = publicKey.to_checksum_address()
         wallet = Account.encrypt(account.privateKey, pwd)
-        data = {
+        
+        d = {
             "address": address,
             "keystore": wallet
         }
-        return data
+
+        ec_cli = kwargs['ec_cli']
+        ec_srv = kwargs['ec_srv']
+        sign = ec_srv.sign(d).decode()
+        d = ec_cli.encrypt(d).decode()
+        return {
+            "code": "success",
+            "sign": sign,
+            "data": d
+        }
     else:
-        return {"error": "no privete_key or no pwd"}
+        return {"code": "fail", "error": "no privete_key or no pwd"}
 
 
 @api_add
+@check_conn(request)
 def export_private(*args, **kwargs):
     # 导出私钥
+    data = kwargs['decrypt']
     necessary_keys = ["pwd", "keystore"]
-    check = check_kv(kwargs, necessary_keys)
+    check = check_kv(data, necessary_keys)
     if check == "Success":
-        keystore = kwargs.get("keystore", None)
-        pwd = kwargs.get("kwd", None)
+        keystore = data.get("keystore", None)
+        pwd = data.get("pwd", None)
         private_key = Account.decrypt(json.dumps(keystore), pwd)
-        return {"private_key": private_key}
+        
+        d = {"private_key": private_key.hex()}
+        ec_cli = kwargs['ec_cli']
+        ec_srv = kwargs['ec_srv']
+        sign = ec_srv.sign(d).decode()
+        d = ec_cli.encrypt(d).decode()
+        
+        return {
+            "code": "success",
+            "sign": sign,
+            "data": d
+        }
     else:
-        return {"error": check}
+        return {"code": "fail", "error": check}
 
 
 @api_add

@@ -14,4 +14,5 @@ def create_app():
     # app.config['SQLALCHEMY_BINDS'] = config.SQLALCHEMY_BINDS
     # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = config.SQLALCHEMY_TRACK_MODIFICATIONS
     app.config['SQLALCHEMY_DATABASE_URI_SETTINGS'] = config.SQLALCHEMY_DATABASE_URI_SETTINGS
+    app.config['REDIS_URL'] = config.REDIS_URL
     return app

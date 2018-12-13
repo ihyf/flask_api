@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 
 from create_app import create_app
 from util.dbmanager import db_manager
+from util.db_redis import redis_store
 from util.mysql_db import create_tables
 from werkzeug.contrib.fixers import ProxyFix
 from util.compile_solidity_utils import deploy_n_transact
@@ -18,8 +19,8 @@ app = create_app()
 app.wsgi_app = ProxyFix(app.wsgi_app)
 with app.app_context():
     db_manager.init_app(app)
+    redis_store.init_app(app)
     # create_tables()   # 手动创建数据库表
-
 html = """
     <!DOCTYPE html>
     <title>Contract Upload</title>
@@ -51,21 +52,6 @@ def upload_contract():
         else:
             return "no files"
     return html
-
-
-@app.route('/compile_contracts')
-def compile_contracts_test():
-    # Solidity source code
-    contract_address, abi = deploy_n_transact(['contracts/user.sol', 'contracts/stringUtils.sol'])
-    
-    with open('data.json', 'w') as outfile:
-        data = {
-            "abi": abi,
-            "contract_address": contract_address
-        }
-        json.dump(data, outfile, indent=4, sort_keys=True)
-    
-    return "ok"
 
 
 @app.route('/compile/<filename>')
