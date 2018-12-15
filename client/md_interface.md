@@ -583,35 +583,37 @@ URL:{baseurl}/api   **[POST]**
 ## 请求[上行]
 ```json
 {
-    "appid": "创建APP的名称",
-    "desc": "app相关的描述信息",
-    "create_cli_keys": false,
-    "create_srv_keys": false,
-    "cli_keys_length": 4096,
-    "srv_keys_length": 4096,
-    "r_cli_publickey": true,
-    "r_srv_privatekey": true,
-    "cli_keys": {
-         "cli_publickey": "xxx",
-         "cli_privatekey": "xxx"
+    "appid": "创建APP的名称",    // app名称
+    "desc": "app相关的描述信息", // app的描述信息
+    "create_cli_keys": false,   // [true/false]，如果为true，服务端会生成用于client的公钥和私钥， 
+                                // 如果为false，需要上传公钥，私钥可选
+    "create_srv_keys": false,   // [true/false]，如果为true，服务端会生成用于server的公钥和私钥，
+                                // 如果为false，需要上传私钥，公钥可选
+    "cli_keys_length": 4096,    // 生成用于client的钥匙长度
+    "srv_keys_length": 4096,    // 生成用于server的钥匙长度
+    "r_cli_publickey": true,    // 在返回结果中包含用于client中的公钥，默认不返回，只返回用于client的私钥
+    "r_srv_privatekey": true,   // 在返回结果中包含用于server中的私钥，默认不返回，只返回用于server的公钥
+    "cli_keys": {               // 用于client端的钥匙
+         "cli_publickey": "xxx",     // 公钥
+         "cli_privatekey": "xxx"     // 私钥
     },
-    "srv_keys": {
-         "srv_publickey": "xxx",
-         "srv_privatekey": "xxx"
+    "srv_keys": {               // 用于server端的钥匙
+         "srv_publickey": "xxx",     // 公钥
+         "srv_privatekey": "xxx"     // 私钥
     },
-    "ip": ["ip1", "ip2", "ip3"],
-    "ns": ["domain1", "domain2", "domain3"],
-    "srv": ["srv1", "srv2", "srv3"],
-    "status": 0,
-    "time": "提交时间， 格式：Unix时间戳"
+    "ip": ["ip1", "ip2", "ip3"],     // 用于APP接入端，请求IP验证，只支持完全匹配，不支持泛匹配
+    "ns": ["domain1", "domain2", "domain3"],    // 用于APP接入端，请求域名验证，只支持完全匹配，不支持泛匹配
+    "srv": ["srv1", "srv2", "srv3"],  // 用于APP开放服务的验证
+    "status": 0,                      // 表示APP所处状态，功能暂定
+    "time": "提交时间， 格式：Unix时间戳"   // 每次提交都必须生成新的时间
 }
 ```
 把请求内容转化成字符串，再对字符串进行签名和加密后：
 ```json
 {
-    "method": "bk_create",
+    "method": "bk_create",             // 创建APP接口名称
     "params": {
-        "appid": "syncapp",
+        "appid": "syncapp",            // 后台APP名称
         "sign": "对请求内容签名后的数据",
         "data": "对请求内容进行加密后的数据"
     },
@@ -623,15 +625,11 @@ URL:{baseurl}/api   **[POST]**
 ### 成功(密文)
 ```json
 {
-    "appid": "创建成功的appid",
-    "cli_keys": {
-         "cli_publickey": "xxx",
-         "cli_privatekey": "xxx"
-    },
-    "srv_keys": {
-         "srv_publickey": "xxx",
-         "srv_privatekey": "xxx"
-    }
+    "appid": "创建成功的appid", // 创建成功的APP
+    "cli_publickey": "xxx",    // 用于client的私钥，默认返回
+    "cli_privatekey": "xxx",   // 用于client的公钥，默认不返回
+    "srv_publickey": "xxx",    // 用于server的私钥，默认返回
+    "srv_privatekey": "xxx"    // 用于server的公钥，默认不返回
 }
 ```
 把以上回复内容转化成字符串，再对字符串进行签名和加密后：
@@ -664,14 +662,14 @@ URL:{baseurl}/api   **[POST]**
 ## 请求[上行]
 ```json
 {
-    "appid": "APP的名称",  
+    "appid": "APP的名称",     // 要删除的APP名称
     "time": "提交时间， 格式：Unix时间戳"      
 }
 ```
 把以上请求内容转化成字符串，再对字符串进行签名和加密后：
 ```json
 {
-    "method": "bk_remove",
+    "method": "bk_remove",   //删除APP接口
     "params": {
         "appid": "syncapp",
         "sign": "对请求内容签名后的数据",
@@ -685,7 +683,7 @@ URL:{baseurl}/api   **[POST]**
 ### 成功(密文)
 ```json
 {
-    "appid": "成功删除的appid"
+    "appid": "成功删除的appid"    // 返回成功删除的APP名称
 }
 ```
 把以上回复内容转化成字符串，再对字符串进行签名和加密后：
@@ -717,20 +715,26 @@ URL:{baseurl}/api   **[POST]**
 ## 请求[上行]
 ```json
 {
-    "appid": "APP的名称",
-    "ns": ["全部更新，不接受增量更新", "ns2"],
-    "ip": ["全部更新，不接受增量更新", "ip2"],
-    "srv": ["全部更新，不接受增量更新", "srv2"],
-    "status": 1,
-    "time": "提交时间， 格式：Unix时间戳"
+    "appid": "APP的名称",    // 需要修改的APP名称
+    // 以下字段，可以按需要进行添加
+    "desc": "XXX",           // APP描述       
+    "ip": ["ip1", "ip2"],    // 全部更新，不接受增量更新
+    "ns": ["ns1", "ns2"],    // 全部更新，不接受增量更新
+    "srv": ["srv1", "srv2"],  // 全部更新，不接受增量更新
+    "cli_publickey": "xxxx",  // 用户client端的公钥
+    "cli_privatekey": "xxxx", // 用户client端的私钥
+    "srv_publickey": "xxxx", // 用户server端的公钥
+    "srv_privatekey": "xxxx", // 用户server端的私钥
+    "status": 1,              // 状态
+    "time": "提交时间， 格式：Unix时间戳" 
 }
 ```
 把请求内容转化成字符串，再对字符串进行签名和加密后：
 ```json
 {
-    "method": "bk_edit",
+    "method": "bk_edit",      // 编辑接口名称
     "params": {
-        "appid": "syncapp",
+        "appid": "syncapp",   // 后台APP名称
         "sign": "对请求内容签名后的数据",
         "data": "对请求内容进行加密后的数据"
     },
@@ -776,16 +780,16 @@ URL:{baseurl}/api   **[POST]**
 ```json
 {
     "appid": "APP的名称",
-    "field": ["ip", "ns", "srv"],
+    "field": ["ip", "ns", "srv"],    // 字段列表，值参考编辑接口（不包含time字段）
     "time": "提交时间， 格式：Unix时间戳"
 }
 ```
 把请求内容转化成字符串，再对字符串进行签名和加密后：
 ```json
 {
-    "method": "bk_info",
+    "method": "bk_info",       // 信息获取接口
     "params": {
-        "appid": "syncapp",
+        "appid": "syncapp",    // 后台APP名称
         "sign": "对请求内容签名后的数据",
         "data": "对请求内容进行加密后的数据"
     },
@@ -833,7 +837,7 @@ URL:{baseurl}/api   **[POST]**
 ## 请求[上行]
 ```json
 {
-    "appid": ["appid列表", "appid2", "appid3"],
+    "appids": ["appid列表", "appid2", "appid3"],  // APP名称列表
     "time": "提交时间， 格式：Unix时间戳"
 }
 ```
@@ -895,5 +899,7 @@ URL:{baseurl}/api   **[POST]**
       "jsonrpc": "2.0"
 }
 ```
+
+
 
 

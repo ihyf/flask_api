@@ -7,7 +7,6 @@ from util.dbmanager import db_manager
 from util.db_redis import redis_store
 from util.mysql_db import Apps
 from cert.eth_certs import EthCert
-from util.check_fuc import bytes_str_to_dict
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 
@@ -94,11 +93,11 @@ def get_keys(appid):
             app = session.query(Apps).filter(Apps.appid == appid).one()
             session.close()
         except MultipleResultsFound:
-            return {"code": "fail", "error": "param error: fount many"}
+            return {"code": "fail", "error": "appid fount many"}
         except NoResultFound:
-            return {"code": "fail", "error": "param error: no found"}
+            return {"code": "fail", "error": "appid no found"}
         except Exception as e:
-            return {"code": "fail", "error": f"param error: {e}"}
+            return {"code": "fail", "error": f"{e}"}
         keys = [
                 app.cli_publickey,
                 app.cli_privatekey,

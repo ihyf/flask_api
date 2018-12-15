@@ -8,29 +8,18 @@ from cert.eth_checkout import check_conn
 from flask import request
 from cert.eth_checkout import delete_checkout_redis
 from cert.eth_certs import EthCert
+from sqlalchemy.orm.attributes import InstrumentedAttribute
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 
-@api_add
-@check_conn(request)
-def token_test(*args, **kwargs):
-    print(args, kwargs)
-    return {"result": "ok"}
-
-
-@api_add
-def keys(*args, **kwargs):
-    import hashlib
-    # ec = EthCert()
-    sha1 = hashlib.sha1()
-    sha1.update(b"XXXXXXXXXXXXXXXXXXXX")
-    hash = sha1.hexdigest()
-    print(redis_store.lindex("Joy", hash))
-    print(redis_store.lpush("Joy", sha1.hexdigest()))
-    redis_store.set('potato', 'Not Set')
-    username = kwargs.get('username', None)
-    if username is None:
-        return {"error": "username error!"}
-    return {"result": "ok"}
+def check_attr(name):
+    try:
+        if not isinstance(eval(f"Apps.{name}"), InstrumentedAttribute):
+            return False
+        else:
+            return True
+    except:
+        return False
 
 
 @api_add
@@ -130,7 +119,7 @@ def bk_create(*args, **kwargs):
         result['cli_publickey'] = cli_publickey
     if "r_srv_privatekey" in origin and origin['r_srv_privatekey'] is True:
         result['r_srv_privatekey'] = srv_privatekey
-    result_str = json.dumps(result)
+    result_str = json.dumps(result, ensure_ascii=False)
     sign = kwargs['ec_srv'].sign(result_str)
     encrypt = kwargs['ec_cli'].encrypt(result_str)
     response = {
@@ -144,16 +133,16 @@ def bk_create(*args, **kwargs):
 @api_add
 @check_conn(request)
 def bk_remove(*args, **kwargs):
-    data = kwargs['decrypt']['params']
-    if "appid" not in data:
-        return {"code": "fail", "error": "miss appid"}
+    origin = kwargs['decrypt']
+    if "appid" not in origin or not origin['appid'] and isinstance(origin['appid'], str):
+        return {"code": "fail", "error": "appid error"}
     session = db_manager.master()
-    session.query(Apps).filter(Apps.appid == data['appid']).delete()
+    session.query(Apps).filter(Apps.appid == origin['appid']).delete()
     session.commit()
     session.close()
-    delete_checkout_redis(data['appid'])
-    result = {"appid": data['appid']}
-    result_str = json.dumps(result)
+    delete_checkout_redis(origin['appid'])
+    result = {"appid": origin['appid']}
+    result_str = json.dumps(result, ensure_ascii=False)
     sign = kwargs['ec_srv'].sign(result_str)
     encrypt = kwargs['ec_cli'].encrypt(result_str)
     response = {
@@ -165,18 +154,129 @@ def bk_remove(*args, **kwargs):
 
 
 @api_add
+@check_conn(request)
 def bk_edit(*args, **kwargs):
-    pass
+    origin = kwargs['decrypt']
+    if "appid" not in origin or not origin['appid'] and isinstance(origin['appid'], str):
+        return {"code": "fail", "error": "appid error"}
+    session = db_manager.master()
+    try:
+        app = session.query(Apps).filter(Apps.appid == origin['appid']).one()
+    except MultipleResultsFound:
+        return {"code": "fail", "error": "appid fount many"}
+    except NoResultFound:
+        return {"code": "fail", "error": "appid no found"}
+    except Exception as e:
+        return {"code": "fail", "error": f"{e}"}
+    for key in origin.keys():
+        if check_attr(key) is False:
+            if key == "time":
+                continue
+            return {"code": "fail", "error": f"filed {key} error"}
+    if 'desc' in origin:
+        app.desc = origin['desc']
+    if 'ip' in origin and isinstance(origin['ip'], list):
+        app.ip = origin['ip']
+    if 'ns' in origin and isinstance(origin['ns'], list):
+        app.ns = origin['ns']
+    ec = EthCert()
+    if 'cli_publickey' in origin and origin['cli_publickey']:
+        ec.init_key(public_key_str=origin['cli_publickey'])
+        if ec.serialization() is False:
+            return {"code": "fail", "error": f"cli_publickey: {ec.error}"}
+        app.cli_publickey = origin['cli_publickey']
+    if 'cli_privatekey' in origin and origin['cli_privatekey']:
+        ec.init_key(private_key_str=origin['cli_privatekey'])
+        if ec.serialization() is False:
+            return {"code": "fail", "error": f"cli_privatekey: {ec.error}"}
+        app.cli_privatekey = origin['cli_privatekey']
+    if 'srv_publickey' in origin and origin['srv_publickey']:
+        ec.init_key(public_key_str=origin['srv_publickey'])
+        if ec.serialization() is False:
+            return {"code": "fail", "error": f"srv_publickey: {ec.error}"}
+        app.srv_publickey = origin['srv_publickey']
+    if 'srv_privatekey' in origin and origin['srv_privatekey']:
+        ec.init_key(private_key_str=origin['srv_privatekey'])
+        if ec.serialization() is False:
+            return {"code": "fail", "error": f"srv_privatekey: {ec.error}"}
+        app.srv_privatekey = origin['srv_privatekey']
+    if 'srv' in origin and isinstance(origin['srv'], list):
+        app.srv = origin['srv']
+    if 'status' in origin and isinstance(origin['status'], int):
+        app.status = origin['status']
+    session.commit()
+    session.close()
+    delete_checkout_redis(origin['appid'])
+    result = {"appid": origin['appid']}
+    result_str = json.dumps(result, ensure_ascii=False)
+    sign = kwargs['ec_srv'].sign(result_str)
+    encrypt = kwargs['ec_cli'].encrypt(result_str)
+    response = {
+        "code": "success",
+        "sign": sign.decode(),
+        "data": encrypt.decode()
+    }
+    return response
 
 
 @api_add
+@check_conn(request)
 def bk_info(*args, **kwargs):
-    pass
-
+    origin = kwargs['decrypt']
+    if "appid" not in origin or not origin['appid'] and isinstance(origin['appid'], str):
+        return {"code": "fail", "error": "appid error"}
+    if "field" not in origin or not isinstance(origin['field'], list):
+        return {"code": "fail", "error": "field error"}
+    session = db_manager.master()
+    try:
+        app = session.query(Apps).filter(Apps.appid == origin['appid']).one()
+        session.close()
+    except MultipleResultsFound:
+        return {"code": "fail", "error": "appid fount many"}
+    except NoResultFound:
+        return {"code": "fail", "error": "appid no found"}
+    except Exception as e:
+        return {"code": "fail", "error": f"{e}"}
+    result = {"appid": origin['appid']}
+    for key in origin['field']:
+        if check_attr(key) is False:
+            if key == "time":
+                continue
+            return {"code": "fail", "error": f"filed {key} error"}
+        else:
+            result[key] = eval(f"app.{key}")
+    result_str = json.dumps(result, ensure_ascii=False)
+    sign = kwargs['ec_srv'].sign(result_str)
+    encrypt = kwargs['ec_cli'].encrypt(result_str)
+    response = {
+        "code": "success",
+        "sign": sign.decode(),
+        "data": encrypt.decode()
+    }
+    return response
 
 @api_add
+@check_conn(request)
 def bk_status(*args, **kwargs):
-    pass
+    origin = kwargs['decrypt']
+    if "appids" not in origin or not origin['appids'] and isinstance(origin['appids'], list):
+        return {"code": "fail", "error": "appids error"}
+    """
+    ####
+    还没有实现
+    ####
+    """
+    result = {"appids": origin['appids'], "mess": "还没有实现"}
+    result_str = json.dumps(result, ensure_ascii=False)
+    sign = kwargs['ec_srv'].sign(result_str)
+    encrypt = kwargs['ec_cli'].encrypt(result_str)
+    response = {
+        "code": "success",
+        "sign": sign.decode(),
+        "data": encrypt.decode()
+    }
+    return response
+
 
 
 
