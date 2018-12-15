@@ -1,6 +1,7 @@
 # coding:utf-8
 import os
 import base64
+import json
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.exceptions import InvalidSignature
@@ -116,6 +117,8 @@ class EthCert(object):
             return origin_str
         if isinstance(origin_str, str):
             return bytes(origin_str, encoding='utf8')
+        if isinstance(origin_str, (list, dict)):
+            return bytes(json.dumps(origin_str, ensure_ascii=False), encoding='utf8')
         else:
             return bytes(str(origin_str), encoding='utf8')
 
@@ -144,6 +147,13 @@ class EthCert(object):
                 return False
         return True
 
+    def sign2_str(self, origin_data):
+        signature = self.sign2(origin_data)
+        if signature is not False:
+            return signature.decode()
+        else:
+            return signature
+
     def sign2(self, origin_data):
         if self.private_key is None:
             self.error = "serialization private key first"
@@ -159,6 +169,13 @@ class EthCert(object):
             )
         )
         return signature
+
+    def sign_str(self, origin_data):
+        signature = self.sign(origin_data)
+        if signature is not False:
+            return signature.decode()
+        else:
+            return signature
 
     def sign(self, origin_data):
         if self.private_key is None:
@@ -209,6 +226,13 @@ class EthCert(object):
             return False
         return True
 
+    def encrypt_str(self, origin_data):
+        encrypt_data_encode = self.encrypt(origin_data)
+        if encrypt_data_encode is not False:
+            return encrypt_data_encode.decode()
+        else:
+            return encrypt_data_encode
+
     def encrypt(self, origin_data):
         if not self.public_key:
             self.error = "serialization public key first"
@@ -235,6 +259,19 @@ class EthCert(object):
             )
         encrypt_data_encode = base64.b64encode(b''.join(en_res))
         return encrypt_data_encode
+
+    def get_publickey(self):
+        return self.public_key_str.decode()
+
+    def get_privatekey(self):
+        return self.private_key_str.decode()
+
+    def decrypt_str(self, encrypt_data):
+        decrypt_data_res = self.decrypt(encrypt_data)
+        if decrypt_data_res is not False:
+            return decrypt_data_res.decode()
+        else:
+            return decrypt_data_res
 
     def decrypt(self, encrypt_data):
         if not self.private_key:
@@ -273,19 +310,21 @@ if __name__ == "__main__":
     ec = EthCert("text")
     # 生成私钥与公钥, 长度默认为2048
     ec.generate(4096)
+    print(ec.get_publickey())
+    print(ec.get_privatekey())
     if ec.save_file():
         ec.serialization()
         origin = "XiaMen City"
         # 数据签名与验证方式一
-        sign = ec.sign(origin)
+        sign = ec.sign_str(origin)
         print(ec.verify(origin, sign))
         # 数据签名与验证方式二
-        sign = ec.sign2(origin)
+        sign = ec.sign2_str(origin)
         print(ec.verify2(origin, sign))
         # 加密数据
-        edata = ec.encrypt(origin)
+        edata = ec.encrypt_str(origin)
         # 解密数据
-        ddata = ec.decrypt(edata)
+        ddata = ec.decrypt_str(edata)
         print(ddata)
     else:
         print(ec.error)

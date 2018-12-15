@@ -2,6 +2,7 @@
 import datetime
 import functools
 import hashlib
+import json
 from util.dbmanager import db_manager
 from util.db_redis import redis_store
 from util.mysql_db import Apps
@@ -20,14 +21,15 @@ def check_conn(request):
             sha1 = hashlib.sha1()
             sha1.update(kw['sign'].encode())
             this_hash = sha1.hexdigest()
+            faster_rc = "rfaster_check_{0}".format(kw['appid'])
             try:
-                if redis_store.exists(kw['appid']) == 0:
-                    redis_store.hset(kw['appid'], this_hash, 1)
-                    redis_store.expire(kw['appid'], 60 * 60 * 12)
+                if redis_store.exists(faster_rc) == 0:
+                    redis_store.hset(faster_rc, this_hash, 1)
+                    redis_store.expire(faster_rc, 60 * 60 * 12)
                 else:
-                    if redis_store.hexists(kw['appid'], this_hash) is True:
+                    if redis_store.hexists(faster_rc, this_hash) is True:
                         return {"code": "fail", "error": "request faster"}
-                redis_store.hset(kw['appid'], this_hash, 1)
+                redis_store.hset(faster_rc, this_hash, 1)
             except Exception as e:
                 return {"code": "fail", "error": "redis server error!"}
             # 查询appid
@@ -60,9 +62,10 @@ def check_conn(request):
             if not ec_cli.verify(decrypt_data, kw['sign']):
                 return {"code": "fail", "error": ec_cli.error}
             try:
-                kw['decrypt'] = bytes_str_to_dict(decrypt_data)
+                kw['decrypt'] = json.loads(decrypt_data.decode())
+                # kw['decrypt'] = bytes_str_to_dict(decrypt_data)
             except Exception as e:
-                return {"code": "fail", "error": "need json or json error!"}
+                return {"code": "fail", "error": f"need json or json error: {e}"}
             kw['verify'] = True
             kw['ec_cli'] = ec_cli
             kw['ec_srv'] = ec_srv
