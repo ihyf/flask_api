@@ -22,8 +22,8 @@ URL:{baseurl}/api   **[POST]**
          "srv_publickey": "xxx",     // 公钥
          "srv_privatekey": "xxx"     // 私钥
     },
-    "ip": ["ip1", "ip2", "ip3"],     // 用于APP接入端，请求IP验证，只支持完全匹配，不支持泛匹配
-    "ns": ["domain1", "domain2", "domain3"],    // 用于APP接入端，请求域名验证，只支持完全匹配，不支持泛匹配
+    "ip": ["192.168.100.0/24", "192.168.100.1", "218.85.0.0/255.255.0.0"],     // 用于APP接入端，请求IP验证
+    "ns": ["www.zzy.com", "*.zzy.com", "*zzy.com"],    // 用于APP接入端，请求域名验证
     "srv": ["srv1", "srv2", "srv3"],  // 用于APP开放服务的验证
     "status": 0,                      // 表示APP所处状态，功能暂定
     "time": "提交时间， 格式：Unix时间戳"   // 每次提交都必须生成新的时间
@@ -47,10 +47,10 @@ URL:{baseurl}/api   **[POST]**
 ```json
 {
     "appid": "创建成功的appid", // 创建成功的APP
-    "cli_publickey": "xxx",    // 用于client的私钥，默认返回
-    "cli_privatekey": "xxx",   // 用于client的公钥，默认不返回
-    "srv_publickey": "xxx",    // 用于server的私钥，默认返回
-    "srv_privatekey": "xxx"    // 用于server的公钥，默认不返回
+    "cli_publickey": "xxx",    // 用于client的公钥，默认不返回
+    "cli_privatekey": "xxx",   // 用于client的私钥，默认返回
+    "srv_publickey": "xxx",    // 用于server的公钥，默认返回
+    "srv_privatekey": "xxx"    // 用于server的私钥，默认不返回
 }
 ```
 把以上回复内容转化成字符串，再对字符串进行签名和加密后：
@@ -321,4 +321,57 @@ URL:{baseurl}/api   **[POST]**
 }
 ```
 
+# APP-清理Redis验证缓存
+---
+URL:{baseurl}/api   **[POST]**
+## 请求[上行]
+```json
+{
+    "appid": "appid",  // APP名称
+    "time": "提交时间， 格式：Unix时间戳"
+}
+```
+把请求内容转化成字符串，再对字符串进行签名和加密后：
+```json
+{
+    "method": "bk_cleanup",
+    "params": {
+        "appid": "syncapp",
+        "sign": "对请求内容签名后的数据",
+        "data": "对请求内容进行加密后的数据"
+    },
+    "jsonrpc": "2.0",
+    "id": 0
+}
+```
+## 回复[下行]
+### 成功(密文)
+```json
+{
+    "appid": "appid"  // APP名称
+}
+```
+把回复内容转化成字符串，再对字符串进行签名和加密后：
+```json
+{
+    "result": {
+        "code": "success",
+        "sign": "对回复内容的签名数据",
+        "data": "对回复内容的加密数据"
+    },
+    "id": 0,
+    "jsonrpc": "2.0"
+}
+```
+### 失败(明文)
+```json
+{
+      "result": {
+          "code": "fail", 
+          "error": "错误说明"
+      }, 
+      "id": 0, 
+      "jsonrpc": "2.0"
+}
+```
 

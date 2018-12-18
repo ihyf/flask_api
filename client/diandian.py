@@ -1,6 +1,7 @@
 import requests
 import json
 import time
+import re
 from cert.eth_certs import EthCert
 
 """接口测试用"""
@@ -21,7 +22,7 @@ class DianDian(object):
             'content-type': "application/json",
             'Authorization': 'PyCharm Test'
         }
-        response = requests.post("http://127.0.0.1:3000/api", data=json.dumps(data), headers=headers)
+        response = requests.post("http://192.168.1.14:8080/api", data=json.dumps(data), headers=headers)
         return response.text
 
     def request_json(self, method, sign, encrypt):
@@ -59,26 +60,44 @@ class DianDian(object):
         result = self.check_rt(res)
         return result
 
+    def ck_domain(self, doamin):
+        ns = []
+        ns_re = '(' + '|'.join(ns) + ')$'
+        ns_re = ns_re.replace(".", "\.")
+        if not re.match(ns_re, doamin, re.I):
+            print("No Match")
+        else:
+            print("Match")
+
     def bk_create(self):
         data = {
-            "appid": "app_test_10",
+<<<<<<< Updated upstream
+            "appid": "app_test_3",
+=======
+            "appid": "app_test_11",
+>>>>>>> Stashed changes
             "desc": "创建测试用例3",
-            "create_cli_keys": False,
-            "create_srv_keys": False,
-            "cli_keys_length": 1024,
+            "create_cli_keys": True,
+            "create_srv_keys": True,
+            "cli_keys_length": 2048,
             "srv_keys_length": 4096,
             "r_cli_publickey": False,
             "r_srv_privatekey": False,
             "cli_keys": {
-                 "cli_publickey": self.ec_cli.get_publickey(),
+                 "cli_publickey": "",
                  "cli_privatekey": ""
             },
             "srv_keys": {
                  "srv_publickey": "",
-                 "srv_privatekey": self.ec_srv.get_privatekey()
+                 "srv_privatekey": ""
             },
-            "ip": ["192.168.1.1", "192.168.1.2", "127.0.0.1", 'localhost', '192.168.1.77'],
+<<<<<<< Updated upstream
+            "ip": ["192.168.1.0/255.255.255.0", "192.168.1.2", "127.0.0.1", '192.168.1.77'],
             "ns": ["localhost", "127.0.0.1", "192.168.1.77"],
+=======
+            "ip": ["192.168.1.1", "192.168.1.2", "127.0.0.1", 'localhost', '192.168.1.7'],
+            "ns": ["localhost", "127.0.0.1", "192.168.1.7"],
+>>>>>>> Stashed changes
             "srv": [],
             "status": 0,
             "time": time.time()
@@ -128,11 +147,27 @@ class DianDian(object):
         result = self.action(data, 'bk_status')
         print("bk_status <=>", result)
 
+    def bk_cleanup(self):
+        data = {
+            "appid": "canigreen",
+            "time": int(time.time())
+        }
+        result = self.action(data, 'bk_cleanup')
+        print("bk_cleanup <=>", result)
+
 
 if __name__ == "__main__":
     dd = DianDian()
-    dd.bk_remove()
-    dd.bk_create()
-    dd.bk_edit()
-    dd.bk_info()
-    dd.bk_status()
+    # dd.bk_remove()
+    # dd.bk_create()
+    # dd.bk_edit()
+    # dd.bk_info()
+    # dd.bk_status()
+    dd.bk_cleanup()
+
+
+
+
+
+
+

@@ -7,7 +7,6 @@ from util.compile_solidity_utils import w3
 from util.check_fuc import check_kv
 
 
-
 @api_add
 def transfer_contract(*args, **kwargs):
     # 调用合约公共接口

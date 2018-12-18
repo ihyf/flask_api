@@ -70,22 +70,27 @@ def create_account(*args, **kwargs):
 def get_balance(*args, **kwargs):
     # 获取余额
     data = kwargs['decrypt']
-    address = data.get("address", None)
-    if address:
-        eth_balance = w3.fromWei(w3.eth.getBalance(address, 'latest'), 'ether')
-        eth_balance = str(eth_balance)
-        d = {
-            "eth_balance": eth_balance
-        }
+    address_list = data.get("address", None)
+    L = []
+    if address_list:
+        for address in address_list:
+            eth_balance = w3.fromWei(w3.eth.getBalance(address, 'latest'), 'ether')
+            eth_balance = str(eth_balance)
+            d = {
+                "address": address,
+                "eth_balance": eth_balance
+            }
+            L.append(d)
         ec_cli = kwargs['ec_cli']
         ec_srv = kwargs['ec_srv']
-        sign = ec_srv.sign(d).decode()
-        d = ec_cli.encrypt(d).decode()
+        sign = ec_srv.sign(L).decode()
+        d_list = ec_cli.encrypt(L).decode()
         
         return {
             "code": "success",
             "sign": sign,
-            "data": d
+            "data": d_list
+            
         }
     else:
         return {

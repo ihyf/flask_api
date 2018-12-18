@@ -2,6 +2,8 @@
 import datetime
 import functools
 import hashlib
+import IPy
+import re
 import json
 from util.dbmanager import db_manager
 from util.db_redis import redis_store
@@ -34,15 +36,30 @@ def check_conn(request):
             # 查询appid
             keys, ns, ip, srv = get_keys(kw['appid'])
             # 检查客户端IP地址
-            if request.remote_addr not in ip:
-                return {"code": "fail", "error": "illegal ip request"}
+            try:
+                for ip_net in ip:
+                    if request.remote_addr in IPy.IP(ip_net):
+                        break
+                else:
+                    return {"code": "fail", "error": "illegal ip request"}
+            except Exception as e:
+                return {"code": "fail", "error": f"match ip error: {e}"}
+
             # 检查客户端请求域名
             if ":" in request.host:
-                real_host = ":".join(request.host.split(":")[:-1])
+                if request.host[-1] == ']':
+                    real_host = request.host
+                else:
+                    real_host = request.host[:request.host.rfind(":")]
             else:
                 real_host = request.host
-            if real_host not in ns:
-                return {"code": "fail", "error": "illegal domain request"}
+            ns_re = '(' + '|'.join(ns) + ')$'
+            ns_re = ns_re.replace(".", "\.").replace("*", ".*?").replace('[', '\[').replace(']', '\]')
+            try:
+                if not re.match(ns_re, real_host, re.I):
+                    return {"code": "fail", "error": "illegal domain request"}
+            except Exception as e:
+                return {"code": "fail", "error": f"match domain error: {e}"}
             # 客户端
             ec_cli = EthCert()
             ec_cli.init_key(public_key_str=keys[0], private_key_str=keys[1])
@@ -62,7 +79,6 @@ def check_conn(request):
                 return {"code": "fail", "error": ec_cli.error}
             try:
                 kw['decrypt'] = json.loads(decrypt_data.decode())
-                # kw['decrypt'] = bytes_str_to_dict(decrypt_data)
             except Exception as e:
                 return {"code": "fail", "error": f"need json or json error: {e}"}
             kw['verify'] = True
@@ -78,7 +94,9 @@ def delete_checkout_redis(appid):
     checkout_ns = "checkout_{0}_ns".format(appid)
     checkout_ip = "checkout_{0}_ip".format(appid)
     checkout_srv = "checkout_{0}_srv".format(appid)
-    redis_store.delete(checkout_keys, checkout_ns, checkout_ip, checkout_srv)
+    # faster_rc = "rfaster_check_{0}".format(appid)
+    checkout_update = "checkout_{0}_update".format(appid)
+    redis_store.delete(checkout_keys, checkout_ns, checkout_ip, checkout_srv, checkout_update)
 
 
 def get_keys(appid):

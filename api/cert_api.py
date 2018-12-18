@@ -1,5 +1,6 @@
 # coding:utf-8
 import json
+import IPy
 from my_dispatcher import api_add
 from util.db_redis import redis_store
 from util.dbmanager import db_manager
@@ -14,10 +15,10 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 def check_attr(name):
     try:
-        if not isinstance(eval(f"Apps.{name}"), InstrumentedAttribute):
-            return False
-        else:
+        if isinstance(eval(f"Apps.{name}"), InstrumentedAttribute):
             return True
+        else:
+            return False
     except:
         return False
 
@@ -35,6 +36,11 @@ def bk_create(*args, **kwargs):
     desc = origin.get("desc", "")
     ip = origin.get("ip")
     if not isinstance(ip, list):
+        return {"code": "fail", "error": "ip filed error"}
+    try:
+        for ipnet in ip:
+            IPy.IP(ipnet)
+    except Exception as e:
         return {"code": "fail", "error": "ip filed error"}
     ns = origin.get("ns")
     if not isinstance(ns, list):
@@ -278,8 +284,23 @@ def bk_status(*args, **kwargs):
     return response
 
 
-
-
+@api_add
+@check_conn(request)
+def bk_cleanup(*args, **kwargs):
+    origin = kwargs['decrypt']
+    if "appid" not in origin or not origin['appid'] and isinstance(origin['appid'], str):
+        return {"code": "fail", "error": "appid error"}
+    delete_checkout_redis(origin['appid'])
+    result = {"appid": origin['appid']}
+    result_str = json.dumps(result, ensure_ascii=False)
+    sign = kwargs['ec_srv'].sign(result_str)
+    encrypt = kwargs['ec_cli'].encrypt(result_str)
+    response = {
+        "code": "success",
+        "sign": sign.decode(),
+        "data": encrypt.decode()
+    }
+    return response
 
 
 
