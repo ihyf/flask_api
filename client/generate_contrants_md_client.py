@@ -3,7 +3,9 @@ import json
 import time
 
 
-url = "http://127.0.0.1:3000/api"
+url1 = "http://127.0.0.1:3000/api"
+url = "http://192.168.1.14:9000/api"
+
 headers = {"content-type": "application/json"}
 
 

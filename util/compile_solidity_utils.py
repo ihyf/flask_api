@@ -21,7 +21,7 @@ def separate_main_n_link(file_path, contracts):
     return main, link
 
 
-def deploy_contract(contract_interface, account=w3.eth.accounts[1]):
+def deploy_contract(contract_interface, account):
     account = w3.toChecksumAddress(account)
 
     # Instantiate and deploy contract
@@ -31,23 +31,23 @@ def deploy_contract(contract_interface, account=w3.eth.accounts[1]):
     tx_hash = contract.deploy(transaction={'from': account})
     # Get tx receipt to get contract address
     tx_receipt = w3.eth.getTransactionReceipt(tx_hash)
-    return tx_receipt['contractAddress']
+    return tx_receipt['contractAddress'], tx_hash.hex()
 
 
-def deploy_n_transact(file_path, mappings=[]):
+def deploy_n_transact(file_path, mappings=[], account=w3.eth.accounts[1]):
     # compile all files
     contracts = compile_files(file_path, import_remappings=mappings)
     link_add = {}
     contract_interface, links = separate_main_n_link(file_path, contracts)
     # first deploy all link libraries
     for link in links:
-        link_add[link] = deploy_contract(links[link])    
+        link_add[link] = deploy_contract(links[link], account)
     # now link dependent library code to main contract binary 
     # https://solidity.readthedocs.io/en/v0.4.24/using-the-compiler.html?highlight=library
     if link_add:
         contract_interface['bin'] = link_code(contract_interface['bin'], link_add)    
     # return contract receipt and abi(application binary interface)
-    return deploy_contract(contract_interface), contract_interface['abi']
+    return deploy_contract(contract_interface, account), contract_interface['abi']
 
 
 

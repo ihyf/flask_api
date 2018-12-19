@@ -5,7 +5,7 @@ import time
 from my_dispatcher import api_add, api
 from util.compile_solidity_utils import w3
 from util.check_fuc import check_kv
-from flask import  request
+from flask import request
 from eth_account import Account
 from mnemonic.mnemonic import Mnemonic
 from util.mnemonic_utils import mnemonic_to_private_key

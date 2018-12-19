@@ -973,6 +973,75 @@ URL:{baseurl}/api   **[POST]**
       "jsonrpc": "2.0"
 }
 ```
+# 合约-调用合约函数
+---
+URL:{baseurl}/api
+## 上行
+加密前
+```json
+{
+    "method": "transfer_contract",
+    "params": {
+        "appid": "hyf_app",
+        "sign": "",
+        "data": {
+            "account": "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1",
+            "contract_name": "luckyNumber",
+            "func_name": "getbonusMoney",
+            "func_param": "",
+            "value": 2,
+            "time": 123000
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 11
+}
+```
+加密后
+```json
+{
+    "method": "export_keystore",
+    "params": {
+        "appid": "hyf_app",
+        "sign": "",
+        "data": ""
+    },
+    "jsonrpc": "2.0",
+    "id": ""
+}
+```
+## 下行
+加密前
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "code": "success",
+        "sign": "",
+        "data": {
+            "code": "success",
+            "data": {}
+        }
+    }
+}
+```
+加密后
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "code": "success",
+        "sign": "",
+        "data": ""
+    }
+}
+```
+```
+error
+{"result": {"code": "fail":,"error": "xx error"}, "id": 0, "jsonrpc": "2.0"}
+```
 
 
 

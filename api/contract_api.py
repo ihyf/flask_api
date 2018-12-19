@@ -3,22 +3,26 @@ import json
 import os
 import logging
 import time
+from flask import request
+from cert.eth_checkout import check_conn
 from my_dispatcher import api_add, api
 from util.compile_solidity_utils import w3
 from util.check_fuc import check_kv
 
 
 @api_add
+@check_conn(request)
 def transfer_contract(*args, **kwargs):
     # 调用合约公共接口
+    data = kwargs['decrypt']
     necessary_keys = ["account", "contract_name", "func_name"]
-    check = check_kv(kwargs, necessary_keys)
+    check = check_kv(data, necessary_keys)
     if check == "Success":
-        account = kwargs.get("account", None)
-        contract_name = kwargs.get("contract_name", None)
-        func_name = kwargs.get("func_name", None)
-        func_param = kwargs.get("func_param", None)
-        value = kwargs.get("func_param", None)
+        account = data.get("account", None)
+        contract_name = data.get("contract_name", None)
+        func_name = data.get("func_name", None)
+        func_param = data.get("func_param", None)
+        value = data.get("value", None)
         
         with open("json_files/data_{}.json".format(contract_name), 'r') as f:
             datastore = json.load(f)
@@ -33,20 +37,57 @@ def transfer_contract(*args, **kwargs):
                            format(contract_name=contract_name, func_name=func_name,
                                   func_param=func_param, account=account, value=value))
             w3.eth.waitForTransactionReceipt(tx_hash)
-            return {"data": "{} ok".format(func_name)}
+            # 插入数据库 预留
+            
+            result = {"data": "{} ok".format(func_name)}
+            ec_cli = kwargs['ec_cli']
+            ec_srv = kwargs['ec_srv']
+            sign = ec_srv.sign(result).decode()
+            result = ec_cli.encrypt(result).decode()
+            
+            return {
+                "code": "success",
+                "sign": sign,
+                "data": result
+            }
         elif "set" in func_name:
             tx_hash = eval("contract_name.functions.{func_name}({func_param})."
                            "transact({{'from': '{account}', 'value': w3.toWei(0, 'ether')}})".
                            format(contract_name=contract_name, func_name=func_name,
                                   func_param=func_param, account=account))
             w3.eth.waitForTransactionReceipt(tx_hash)
-            return {"data": "set {} ok".format(func_name)}
+
+            # 插入数据库 预留
+            result = {"data": "set {} ok".format(func_name)}
+            ec_cli = kwargs['ec_cli']
+            ec_srv = kwargs['ec_srv']
+            sign = ec_srv.sign(result).decode()
+            result = ec_cli.encrypt(result).decode()
+
+            return {
+                "code": "success",
+                "sign": sign,
+                "data": result
+            }
         elif "get" in func_name:
             result = eval("contract_name.functions.{func_name}({func_param}).call()".
                           format(contract_name=contract_name, func_name=func_name, func_param=func_param))
-            return {"data": result}
+
+            # 插入数据库 预留
+            
+            result = {"data": result}
+            ec_cli = kwargs['ec_cli']
+            ec_srv = kwargs['ec_srv']
+            sign = ec_srv.sign(result).decode()
+            result = ec_cli.encrypt(result).decode()
+
+            return {
+                "code": "success",
+                "sign": sign,
+                "data": result
+            }
     else:
-        return {"error": check}
+        return {"code": "fail", "error": check}
     
     
 @api_add

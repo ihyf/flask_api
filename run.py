@@ -4,7 +4,7 @@ import os
 from flask import render_template
 from solc import link_code
 from werkzeug.utils import secure_filename
-
+from util.compile_solidity_utils import w3
 from create_app import create_app
 from util.dbmanager import db_manager
 from util.db_redis import redis_store
@@ -13,7 +13,8 @@ from werkzeug.contrib.fixers import ProxyFix
 from util.compile_solidity_utils import deploy_n_transact
 from util.upload import Upload
 from flask import request
-# from util.ext import db
+from util.mysql_db import db_manager, DeployContracts
+import time
 
 app = create_app()
 app.wsgi_app = ProxyFix(app.wsgi_app)
@@ -57,13 +58,23 @@ def upload_contract():
 @app.route('/compile/<filename>')
 def compile_contract(filename):
     # 根据文件名 编译合约
-    contract_address, abi = deploy_n_transact(['contracts/{}'.format(filename)])
+    account = w3.eth.accounts[1]
+    pay_gas = 1
+    contract_address, abi, tx_hash = deploy_n_transact(['contracts/{}'.format(filename)], account=account)
     with open('json_files/data_{}.json'.format(filename.split(".")[0]), 'w') as outfile:
         data = {
             "abi": abi,
             "contract_address": contract_address
         }
         json.dump(data, outfile, indent=4, sort_keys=True)
+
+    session = db_manager.master()
+    deploy_time = time.strftime("%Y-%m-%d %X", time.localtime())
+    new_dc = DeployContracts(address=account, tx_hash=tx_hash,
+                             deploy_time=deploy_time, pay_gas=pay_gas, contract_address=contract_address)
+    session.add(new_dc)
+    session.commit()
+    session.close()
 
     return "compile {} ok".format(filename)
 
