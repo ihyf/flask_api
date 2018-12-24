@@ -49,7 +49,7 @@ def upload_contract():
                 file.save(os.path.join(up.upload_dir, filename))
                 return "upload_contract ok"
             else:
-                return "no sol"
+                return "no .sol files"
         else:
             return "no files"
     return html
@@ -60,18 +60,19 @@ def compile_contract(filename):
     # 根据文件名 编译合约
     account = w3.eth.accounts[1]
     pay_gas = 1
-    contract_address, abi, tx_hash = deploy_n_transact(['contracts/{}'.format(filename)], account=account)
+    contract_address, abi = deploy_n_transact(['contracts/{}'.format(filename)], account=account)
+    tx_hash = contract_address[1]
     with open('json_files/data_{}.json'.format(filename.split(".")[0]), 'w') as outfile:
         data = {
             "abi": abi,
-            "contract_address": contract_address
+            "contract_address": contract_address[0]
         }
         json.dump(data, outfile, indent=4, sort_keys=True)
 
     session = db_manager.master()
     deploy_time = time.strftime("%Y-%m-%d %X", time.localtime())
-    new_dc = DeployContracts(address=account, tx_hash=tx_hash,
-                             deploy_time=deploy_time, pay_gas=pay_gas, contract_address=contract_address)
+    new_dc = DeployContracts(contract_name=filename, address=account, tx_hash=tx_hash,
+                             deploy_time=deploy_time, pay_gas=pay_gas, contract_address=contract_address[0])
     session.add(new_dc)
     session.commit()
     session.close()

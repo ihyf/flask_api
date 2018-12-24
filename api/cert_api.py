@@ -124,7 +124,7 @@ def bk_create(*args, **kwargs):
     if "r_cli_publickey" in origin and origin['r_cli_publickey'] is True:
         result['cli_publickey'] = cli_publickey
     if "r_srv_privatekey" in origin and origin['r_srv_privatekey'] is True:
-        result['r_srv_privatekey'] = srv_privatekey
+        result['srv_privatekey'] = srv_privatekey
     result_str = json.dumps(result, ensure_ascii=False)
     sign = kwargs['ec_srv'].sign(result_str)
     encrypt = kwargs['ec_cli'].encrypt(result_str)

@@ -62,6 +62,7 @@ class TransactionRecord(Base):
 class DeployContracts(Base):
     __tablename__ = "deploy_contracts"
     id = Column(Integer, autoincrement=True, primary_key=True)
+    contract_name = Column(String(200), primary_key=True)
     address = Column(String(200))
     tx_hash = Column(String(100))
     deploy_time = Column(String(20))
@@ -87,7 +88,6 @@ class Services(Base):
     service_id = Column(Integer, autoincrement=True, primary_key=True)
     service_name = Column(String(20), primary_key=True)
     
-
 
 def create_tables():
     engine = db_manager.get_engine_master()

@@ -43,7 +43,8 @@ def my_method(*args, **kwargs):
 # def transfer_contract(*args, **kwargs):
 #     # 调用合约公共接口
 #     necessary_keys = ["account", "contract_name", "func_name"]
-#     check = check_kv(kwargs, necessary_keys)
+#     check = check_kv(kwargs,
+# )
 #     if check == "Success":
 #         account = kwargs.get("account", None)
 #         contract_name = kwargs.get("contract_name", None)
@@ -203,7 +204,7 @@ def create_account_11(*args, **kwargs):
 #     data = kwargs['decrypt']
 #     address = data.get("address", None)
 #     if address:
-#         eth_balance = w3.fromWei(w3.eth.getBalance(address, 'latest'), 'ether')
+#         eth_balance = w3.fromWei(w3.eth.getBalance(address, '  '), 'ether')
 #         eth_balance = str(eth_balance)
 #         d = {
 #             "eth_balance": eth_balance
@@ -471,7 +472,7 @@ def send_transaction_11(*args, **kwargs):
 #
 #         ec_cli = kwargs['ec_cli']
 #         ec_srv = kwargs['ec_srv']
-#         sign = ec_srv.sign(d).decode()
+#         sign = ec_srv.sign(d). ()
 #         d = ec_cli.encrypt(d).decode()
 #
 #         return {

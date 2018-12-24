@@ -34,19 +34,19 @@ def main():
         "version": 3
     }
 
-    # payload = {
-    #     "method": "create_account",
-    #     "params": {
-    #         "appid": "hyf_app",
-    #         "sign": "",
-    #         "data": {
-    #             "pwd": "hyf",
-    #             "time": time.time()
-    #         }
-    #     },
-    #     "jsonrpc": "2.0",
-    #     "id": 0
-    # }
+    payload = {
+        "method": "create_account",
+        "params": {
+            "appid": "hyf_app",
+            "sign": "",
+            "data": {
+                "pwd": "hyf",
+                "time": time.time()
+            }
+        },
+        "jsonrpc": "2.0",
+        "id": 0
+    }
 
     # payload = {
     #     "method": "send_transaction",
@@ -94,19 +94,19 @@ def main():
 #     "jsonrpc": "2.0",
 #     "id": ""
 # }
-    payload = {
-        "method": "get_balance",
-        "params": {
-            "appid": "hyf_app",
-            "sign": "",
-            "data": {
-                "address": ["0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1", "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1", "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1", "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1"],
-                "time": time.time()
-            }
-        },
-        "jsonrpc": "2.0",
-        "id": 0
-    }
+#     payload = {
+#         "method": "get_balance",
+#         "params": {
+#             "appid": "hyf_app",
+#             "sign": "",
+#             "data": {
+#                 "address": ["0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1", "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1", "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1", "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1"],
+#                 "time": time.time()
+#             }
+#         },
+#         "jsonrpc": "2.0",
+#         "id": 0
+#     }
     
     from cert.eth_certs import EthCert
     ec = EthCert("hyf_app")

@@ -34,10 +34,17 @@ def check_conn(request):
             except Exception as e:
                 return {"code": "fail", "error": "redis server error!"}
             # 查询appid
-            keys, ns, ip, srv = get_keys(kw['appid'])
+            keystatus, res_kes = get_keys(kw['appid'])
+            if keystatus is not True:
+                return res_kes
+            # srv
+            if "method" not in request.json or not request.json['method']:
+                return {"code": "fail", "error": "method error!"}
+            if request.json['method'] not in res_kes["srv"]:
+                return {"code": "fail", "error": "forbidden!"}
             # 检查客户端IP地址
             try:
-                for ip_net in ip:
+                for ip_net in res_kes["ip"]:
                     if request.remote_addr in IPy.IP(ip_net):
                         break
                 else:
@@ -53,7 +60,7 @@ def check_conn(request):
                     real_host = request.host[:request.host.rfind(":")]
             else:
                 real_host = request.host
-            ns_re = '(' + '|'.join(ns) + ')$'
+            ns_re = '(' + '|'.join(res_kes["ns"]) + ')$'
             ns_re = ns_re.replace(".", "\.").replace("*", ".*?").replace('[', '\[').replace(']', '\]')
             try:
                 if not re.match(ns_re, real_host, re.I):
@@ -62,11 +69,11 @@ def check_conn(request):
                 return {"code": "fail", "error": f"match domain error: {e}"}
             # 客户端
             ec_cli = EthCert()
-            ec_cli.init_key(public_key_str=keys[0], private_key_str=keys[1])
+            ec_cli.init_key(public_key_str=res_kes["keys"][0], private_key_str=res_kes["keys"][1])
             ec_cli.serialization()
             # 服务端
             ec_srv = EthCert()
-            ec_srv.init_key(public_key_str=keys[2], private_key_str=keys[3])
+            ec_srv.init_key(public_key_str=res_kes["keys"][2], private_key_str=res_kes["keys"][3])
             ec_srv.serialization()
             # 用自己的私钥解密
             decrypt_data = ec_srv.decrypt(kw['data'])
@@ -105,41 +112,47 @@ def get_keys(appid):
     checkout_ip = "checkout_{0}_ip".format(appid)
     checkout_srv = "checkout_{0}_srv".format(appid)
     checkout_update = "checkout_{0}_update".format(appid)
+    res_kes = {
+        "keys": None,
+        "ns": None,
+        "ip": None,
+        "srv": None
+    }
     if redis_store.exists(checkout_keys) == 0:
         session = db_manager.slave()
         try:
             app = session.query(Apps).filter(Apps.appid == appid).one()
             session.close()
         except MultipleResultsFound:
-            return {"code": "fail", "error": "appid fount many"}
+            return False, {"code": "fail", "error": "appid fount many"}
         except NoResultFound:
-            return {"code": "fail", "error": "appid no found"}
+            return False, {"code": "fail", "error": "appid no found"}
         except Exception as e:
-            return {"code": "fail", "error": f"{e}"}
-        keys = [
+            return False, {"code": "fail", "error": f"{e}"}
+        res_kes["keys"] = [
                 app.cli_publickey,
                 app.cli_privatekey,
                 app.srv_publickey,
                 app.srv_privatekey,
         ]
         redis_store.delete(checkout_keys, checkout_ns, checkout_ip, checkout_srv)
-        redis_store.rpush(checkout_keys, keys[0], keys[1], keys[2], keys[3])
-        ns = app.ns
-        ip = app.ip
-        srv = app.srv
-        if ns:
-            redis_store.rpush(checkout_ns, *ns)
-        if ip:
-            redis_store.rpush(checkout_ip, *ip)
-        if srv:
-            redis_store.rpush(checkout_srv, *srv)
+        redis_store.rpush(checkout_keys, res_kes["keys"][0], res_kes["keys"][1], res_kes["keys"][2], res_kes["keys"][3])
+        res_kes["ns"] = app.ns
+        res_kes["ip"] = app.ip
+        res_kes["srv"] = app.srv
+        if res_kes["ns"]:
+            redis_store.rpush(checkout_ns, *res_kes["ns"])
+        if res_kes["ip"]:
+            redis_store.rpush(checkout_ip, *res_kes["ip"])
+        if res_kes["srv"]:
+            redis_store.rpush(checkout_srv, *res_kes["srv"])
         redis_store.set(checkout_update, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     else:
-        keys = redis_store.lrange(checkout_keys, 0, 3)
-        ns = redis_store.lrange(checkout_ns, 0, -1)
-        ip = redis_store.lrange(checkout_ip, 0, -1)
-        srv = redis_store.lrange(checkout_srv, 0, -1)
-    return keys, ns, ip, srv
+        res_kes["keys"] = redis_store.lrange(checkout_keys, 0, 3)
+        res_kes["ns"] = redis_store.lrange(checkout_ns, 0, -1)
+        res_kes["ip"] = redis_store.lrange(checkout_ip, 0, -1)
+        res_kes["srv"] = redis_store.lrange(checkout_srv, 0, -1)
+    return True, res_kes
 
 
 

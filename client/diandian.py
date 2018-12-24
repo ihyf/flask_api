@@ -22,7 +22,7 @@ class DianDian(object):
             'content-type': "application/json",
             'Authorization': 'PyCharm Test'
         }
-        response = requests.post("http://192.168.1.14:8080/api", data=json.dumps(data), headers=headers)
+        response = requests.post("http://127.0.0.1:3000/api", data=json.dumps(data), headers=headers)
         return response.text
 
     def request_json(self, method, sign, encrypt):
@@ -71,18 +71,14 @@ class DianDian(object):
 
     def bk_create(self):
         data = {
-<<<<<<< Updated upstream
-            "appid": "app_test_3",
-=======
-            "appid": "app_test_11",
->>>>>>> Stashed changes
+            "appid": "syncapp",
             "desc": "创建测试用例3",
             "create_cli_keys": True,
             "create_srv_keys": True,
-            "cli_keys_length": 2048,
+            "cli_keys_length": 4096,
             "srv_keys_length": 4096,
-            "r_cli_publickey": False,
-            "r_srv_privatekey": False,
+            "r_cli_publickey": True,
+            "r_srv_privatekey": True,
             "cli_keys": {
                  "cli_publickey": "",
                  "cli_privatekey": ""
@@ -91,13 +87,8 @@ class DianDian(object):
                  "srv_publickey": "",
                  "srv_privatekey": ""
             },
-<<<<<<< Updated upstream
             "ip": ["192.168.1.0/255.255.255.0", "192.168.1.2", "127.0.0.1", '192.168.1.77'],
             "ns": ["localhost", "127.0.0.1", "192.168.1.77"],
-=======
-            "ip": ["192.168.1.1", "192.168.1.2", "127.0.0.1", 'localhost', '192.168.1.7'],
-            "ns": ["localhost", "127.0.0.1", "192.168.1.7"],
->>>>>>> Stashed changes
             "srv": [],
             "status": 0,
             "time": time.time()
@@ -115,16 +106,24 @@ class DianDian(object):
 
     def bk_edit(self):
         data = {
-            "appid": "app_test_8",
-            "ns": ["全部更新，不接受增量更新", "ns2"],
-            "ip": ["全部更新，不接受增量更新", "ip2"],
-            "srv": ["全部更新，不接受增量更新", "srv2"],
-            "cli_publickey": self.ec_cli.get_publickey(),
-            "cli_privatekey": self.ec_cli.get_privatekey(),
-            "srv_publickey": self.ec_srv.get_publickey(),
-            "srv_privatekey": self.ec_srv.get_privatekey(),
-            "status": 100,
-            "lelsie": True,
+            "appid": "syncapp",
+            "srv": [
+                "bk_create",
+                "bk_remove",
+                "bk_edit",
+                "bk_info",
+                "bk_status",
+                "bk_cleanup",
+            ],
+            # "ns": ["全部更新，不接受增量更新", "ns2"],
+            # "ip": ["全部更新，不接受增量更新", "ip2"],
+            # "srv": ["全部更新，不接受增量更新", "srv2"],
+            # "cli_publickey": self.ec_cli.get_publickey(),
+            # "cli_privatekey": self.ec_cli.get_privatekey(),
+            # "srv_publickey": self.ec_srv.get_publickey(),
+            # "srv_privatekey": self.ec_srv.get_privatekey(),
+            # "status": 100,
+            # "lelsie": True,
             "time": time.time()
         }
         result = self.action(data, 'bk_edit')
@@ -160,10 +159,10 @@ if __name__ == "__main__":
     dd = DianDian()
     # dd.bk_remove()
     # dd.bk_create()
-    # dd.bk_edit()
+    dd.bk_edit()
     # dd.bk_info()
     # dd.bk_status()
-    dd.bk_cleanup()
+    # dd.bk_cleanup()
 
 
 
