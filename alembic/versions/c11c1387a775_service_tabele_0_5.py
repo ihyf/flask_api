@@ -1,8 +1,8 @@
-"""update table apps v2
+"""service tabele 0.5
 
-Revision ID: 01f2295cdf93
-Revises: f625e0e9c40d
-Create Date: 2018-12-13 11:20:37.003802
+Revision ID: c11c1387a775
+Revises: 71da2d9594ad
+Create Date: 2018-12-24 17:05:39.286918
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '01f2295cdf93'
-down_revision = 'f625e0e9c40d'
+revision = 'c11c1387a775'
+down_revision = '71da2d9594ad'
 branch_labels = None
 depends_on = None
 

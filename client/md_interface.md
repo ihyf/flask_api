@@ -645,16 +645,6 @@ URL:{baseurl}/api   **[POST]**
 ### 成功(密文)
 ```json
 {
-    "appid": "创建成功的appid", // 创建成功的APP
-    "cli_publickey": "xxx",    // 用于client的公钥，默认不返回
-    "cli_privatekey": "xxx",   // 用于client的私钥，默认返回
-    "srv_publickey": "xxx",    // 用于server的公钥，默认返回
-    "srv_privatekey": "xxx"    // 用于server的私钥，默认不返回
-}
-```
-把以上回复内容转化成字符串，再对字符串进行签名和加密后：
-```json
-{
     "result": {
         "code": "success",
         "sign": "对回复内容的签名数据",
@@ -662,6 +652,16 @@ URL:{baseurl}/api   **[POST]**
     },
     "id": 0,
     "jsonrpc": "2.0"
+}
+```
+先对data中数据进行解密，再对解密结果进行验证，data字段中的数据如下：
+```json
+{
+    "appid": "创建成功的appid", // 创建成功的APP
+    "cli_publickey": "xxx",    // 用于client的公钥，默认不返回
+    "cli_privatekey": "xxx",   // 用于client的私钥，默认返回
+    "srv_publickey": "xxx",    // 用于server的公钥，默认返回
+    "srv_privatekey": "xxx"    // 用于server的私钥，默认不返回
 }
 ```
 ### 失败(明文)
@@ -703,12 +703,6 @@ URL:{baseurl}/api   **[POST]**
 ### 成功(密文)
 ```json
 {
-    "appid": "成功删除的appid"    // 返回成功删除的APP名称
-}
-```
-把以上回复内容转化成字符串，再对字符串进行签名和加密后：
-```json
-{
     "result": {
         "code": "success",
         "sign": "对回复内容的签名数据",
@@ -716,6 +710,12 @@ URL:{baseurl}/api   **[POST]**
     },
     "id": 0,
     "jsonrpc": "2.0"
+}
+```
+先对data中数据进行解密，再对解密结果进行验证，data字段中的数据如下：
+```json
+{
+    "appid": "成功删除的appid"    // 返回成功删除的APP名称
 }
 ```
 ### 失败(明文)
@@ -766,12 +766,6 @@ URL:{baseurl}/api   **[POST]**
 ### 成功(密文)
 ```json
 {
-    "appid": "成功编辑的appid"
-}
-```
-把回复内容转换成字符串，再对字符串进行签名和加密后：
-```json
-{
     "result": {
         "code": "success",
         "sign": "对回复内容的签名数据",
@@ -779,6 +773,12 @@ URL:{baseurl}/api   **[POST]**
     },
     "id": 0,
     "jsonrpc": "2.0"
+}
+```
+先对data中数据进行解密，再对解密结果进行验证，data字段中的数据如下：
+```json
+{
+    "appid": "成功编辑的appid"
 }
 ```
 ### 失败(明文)
@@ -821,15 +821,6 @@ URL:{baseurl}/api   **[POST]**
 ### 成功(密文)
 ```json
 {
-    "appid": "成功编辑的appid",
-    "ip": [],
-    "ns": [],
-    "srv": []
-}
-```
-把回复内容转化成字符串，再对字符串进行签名和加密后：
-```json
-{
     "result": {
         "code": "success",
         "sign": "对回复内容的签名数据",
@@ -837,6 +828,15 @@ URL:{baseurl}/api   **[POST]**
     },
     "id": 0,
     "jsonrpc": "2.0"
+}
+```
+先对data中数据进行解密，再对解密结果进行验证，data字段中的数据如下：
+```json
+{
+    "appid": "成功编辑的appid",
+    "ip": [],
+    "ns": [],
+    "srv": []
 }
 ```
 ### 失败(明文)
@@ -878,6 +878,18 @@ URL:{baseurl}/api   **[POST]**
 ### 成功(密文)
 ```json
 {
+    "result": {
+        "code": "success",
+        "sign": "对回复内容的签名数据",
+        "data": "对回复内容的加密数据"
+    },
+    "id": 0,
+    "jsonrpc": "2.0"
+}
+```
+先对data中数据进行解密，再对解密结果进行验证，data字段中的数据如下：
+```json
+{
     "data": [
         {
             "appid": "appid1",
@@ -894,18 +906,6 @@ URL:{baseurl}/api   **[POST]**
             "other": "xxx"
         }
     ]
-}
-```
-把回复内容转化成字符串，再对字符串进行签名和加密后：
-```json
-{
-    "result": {
-        "code": "success",
-        "sign": "对回复内容的签名数据",
-        "data": "对回复内容的加密数据"
-    },
-    "id": 0,
-    "jsonrpc": "2.0"
 }
 ```
 ### 失败(明文)
@@ -947,12 +947,6 @@ URL:{baseurl}/api   **[POST]**
 ### 成功(密文)
 ```json
 {
-    "appid": "appid"  // APP名称
-}
-```
-把回复内容转化成字符串，再对字符串进行签名和加密后：
-```json
-{
     "result": {
         "code": "success",
         "sign": "对回复内容的签名数据",
@@ -960,6 +954,12 @@ URL:{baseurl}/api   **[POST]**
     },
     "id": 0,
     "jsonrpc": "2.0"
+}
+```
+先对data中数据进行解密，再对解密结果进行验证，data字段中的数据如下：
+```json
+{
+    "appid": "appid"  // APP名称
 }
 ```
 ### 失败(明文)
@@ -972,6 +972,134 @@ URL:{baseurl}/api   **[POST]**
       "id": 0, 
       "jsonrpc": "2.0"
 }
+```
+# 合约-新增主合约
+---
+URL:{baseurl}/api
+## 上行
+加密前
+```json
+{
+    "method": "add_master_contract",
+    "params": {
+        "appid": "hyf_app",
+        "sign": "",
+        "data": {
+            "master_contract_name": "主合约名（不能重复，不能使用中文）",
+            "time": "时间戳"
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 0
+}
+```
+加密后
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "code": "success",
+        "sign": "",
+        "data": ""
+    }
+}
+```
+## 下行
+加密前
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "code": "success",
+        "sign": "",
+        "data": {
+            "code": "success",
+            "data": {
+                "master_contract_name": "主合约名",
+                "tx_hash": "部署哈希",
+                "contract_address": "合约地址"
+            }
+        }
+    }
+}
+```
+加密后
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "code": "success",
+        "sign": "",
+        "data": ""
+    }
+}
+```
+```
+error
+{"result": {"code": "fail":,"error": "xx error"}, "id": 0, "jsonrpc": "2.0"}
+```
+# 合约-部署合约函数
+---
+URL:{baseurl}/api
+## 上行
+加密前
+```json
+{
+    "method": "deploy_contract",
+    "params": {
+        "appid": "hyf_app",
+        "sign": "",
+        "no_decrypt": "no_decrypt", 
+        "data": {
+            "contract_name": "合约名",
+            "contract_content": "合约内容",
+            "master_contract_name": "该子合约所属主合约名",
+            "time": 1111
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 0
+}
+```
+加密后
+
+"no_decrypt": "no_decrypt"
+
+带此参数 无需将data加密，只需要签名
+## 下行
+加密前
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "code": "success",
+        "sign": "",
+        "data": {
+            "code": "success",
+            "data": {}
+        }
+    }
+}
+```
+加密后
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "code": "success",
+        "sign": "",
+        "data": ""
+    }
+}
+```
+```
+error
+{"result": {"code": "fail":,"error": "xx error"}, "id": 0, "jsonrpc": "2.0"}
 ```
 # 合约-调用合约函数
 ---
@@ -1000,7 +1128,7 @@ URL:{baseurl}/api
 加密后
 ```json
 {
-    "method": "export_keystore",
+    "method": "transfer_contract",
     "params": {
         "appid": "hyf_app",
         "sign": "",

@@ -227,13 +227,71 @@ def bk_edit(*args, **kwargs):
 
 @api_add
 @check_conn(request)
+def bk_reset(*args, **kwargs):
+    origin = kwargs['decrypt']
+    if "appid" not in origin or not origin['appid'] and isinstance(origin['appid'], str):
+        return {"code": "fail", "error": "appid error"}
+    session = db_manager.master()
+    try:
+        app = session.query(Apps).filter(Apps.appid == origin['appid']).one()
+        session.close()
+    except MultipleResultsFound:
+        return {"code": "fail", "error": "appid fount many"}
+    except NoResultFound:
+        return {"code": "fail", "error": "appid no found"}
+    except Exception as e:
+        return {"code": "fail", "error": f"{e}"}
+    reset_cli_keys = origin.get("reset_cli_keys", False)
+    reset_srv_keys = origin.get("reset_srv_keys", False)
+    if reset_cli_keys is not True and reset_srv_keys is not True:
+        return {"code": "fail", "error": "do nothing"}
+    cli_keys_length = origin.get("cli_keys_length", 4096)
+    if cli_keys_length not in [1024, 2048, 4096]:
+        return {"code": "fail", "error": "srv_keys_length must in [1024, 2048, 4096]"}
+    srv_keys_length = origin.get("srv_keys_length", 4096)
+    if srv_keys_length not in [1024, 2048, 4096]:
+        return {"code": "fail", "error": "srv_keys_length must in [1024, 2048, 4096]"}
+    ec = EthCert()
+    if reset_cli_keys is True:
+        ec.generate(cli_keys_length)
+        app.cli_privatekey = ec.get_privatekey()
+        app.cli_publickey = ec.get_publickey()
+    if reset_srv_keys is True:
+        ec.generate(srv_keys_length)
+        app.srv_privatekey = ec.get_privatekey()
+        app.srv_publickey = ec.get_publickey()
+    session.commit()
+    session.close()
+    delete_checkout_redis(origin['appid'])
+    result = {
+        "appid": origin['appid'],
+        "cli_privatekey": app.cli_privatekey,
+        "srv_publickey": app.srv_publickey,
+    }
+    if "r_cli_publickey" in origin and origin['r_cli_publickey'] is True:
+        result['cli_publickey'] = app.cli_publickey
+    if "r_srv_privatekey" in origin and origin['r_srv_privatekey'] is True:
+        result['srv_privatekey'] = app.srv_privatekey
+    result_str = json.dumps(result, ensure_ascii=False)
+    sign = kwargs['ec_srv'].sign(result_str)
+    encrypt = kwargs['ec_cli'].encrypt(result_str)
+    response = {
+        "code": "success",
+        "sign": sign.decode(),
+        "data": encrypt.decode()
+    }
+    return response
+
+
+@api_add
+@check_conn(request)
 def bk_info(*args, **kwargs):
     origin = kwargs['decrypt']
     if "appid" not in origin or not origin['appid'] and isinstance(origin['appid'], str):
         return {"code": "fail", "error": "appid error"}
     if "field" not in origin or not isinstance(origin['field'], list):
         return {"code": "fail", "error": "field error"}
-    session = db_manager.master()
+    session = db_manager.slave()
     try:
         app = session.query(Apps).filter(Apps.appid == origin['appid']).one()
         session.close()

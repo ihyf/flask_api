@@ -1,10 +1,10 @@
 # coding:utf-8
 from sqlalchemy import Column
-from sqlalchemy import Integer, String, Text, JSON, DATETIME
+from sqlalchemy import Integer, String, Text, JSON, DATETIME, ForeignKey, PickleType
 from util.dbmanager import db_manager
 from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
-
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
@@ -68,13 +68,17 @@ class DeployContracts(Base):
     deploy_time = Column(String(20))
     pay_gas = Column(String(20))
     contract_address = Column(String(100))
+    service_id = Column(Integer, ForeignKey('deploy_contracts.id'), nullable=True)
     
 
 class Contracts(Base):
     __tablename__ = "contracts"
     contract_id = Column(Integer, autoincrement=True, primary_key=True)
+    contract_id = Column(Integer, autoincrement=True, primary_key=True)
     contract_address = Column(String(100), primary_key=True)
-
+    contract_version = Column(String(20))
+    contract_text = Column(Text)
+    
 
 class Tokens(Base):
     __tablename__ = "tokens"
@@ -87,8 +91,20 @@ class Services(Base):
     __tablename__ = "services"
     service_id = Column(Integer, autoincrement=True, primary_key=True)
     service_name = Column(String(20), primary_key=True)
+    service_description = Column(String(1000))
+    contracts = relationship('DeployContracts')
     
 
+class ContractOp(Base):
+    __tablename__ = "Contract operation table"
+    op_id = Column(Integer, autoincrement=True, primary_key=True)
+    contract_name = Column(String(20), primary_key=True)
+    contract_address = Column(String(100), primary_key=True)
+    op_info = Column(PickleType)
+    op_time = Column(String(20))
+    tx_hash = Column(String(100))
+    
+    
 def create_tables():
     engine = db_manager.get_engine_master()
     Base.metadata.create_all(engine)

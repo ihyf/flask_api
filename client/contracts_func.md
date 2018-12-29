@@ -1,5 +1,7 @@
 # 合约名: luckyNumber
 
+# 合约地址: 0xFE5915397276F7B961d3f80AdA820ED1B99A54b6
+
 ## getBalance()
 返回值:
 
@@ -37,6 +39,8 @@ _num--->uint32
 
 bool
 # 合约名: play
+
+# 合约地址: 0x49183a8a411BCc926C34370e100F5f952b33dE7E
 
 ## betting(_guess)
 参数类型:

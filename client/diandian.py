@@ -106,7 +106,7 @@ class DianDian(object):
 
     def bk_edit(self):
         data = {
-            "appid": "syncapp",
+            "appid": "diandian",
             "srv": [
                 "bk_create",
                 "bk_remove",
@@ -114,6 +114,7 @@ class DianDian(object):
                 "bk_info",
                 "bk_status",
                 "bk_cleanup",
+                "bk_reset",
             ],
             # "ns": ["全部更新，不接受增量更新", "ns2"],
             # "ip": ["全部更新，不接受增量更新", "ip2"],
@@ -154,12 +155,27 @@ class DianDian(object):
         result = self.action(data, 'bk_cleanup')
         print("bk_cleanup <=>", result)
 
+    def bk_reset(self):
+        data = {
+            "appid": "test_app_10",
+            "reset_cli_keys": True,
+            "reset_srv_keys": True,
+            "cli_keys_length": 1024,
+            "srv_keys_length": 1024,
+            "r_cli_publickey": False,
+            "r_srv_privatekey": False,
+            "time": time.time(),
+        }
+        result = self.action(data, 'bk_reset')
+        print("bk_reset <=>", result)
+
 
 if __name__ == "__main__":
     dd = DianDian()
     # dd.bk_remove()
     # dd.bk_create()
-    dd.bk_edit()
+    dd.bk_reset()
+    # dd.bk_edit()
     # dd.bk_info()
     # dd.bk_status()
     # dd.bk_cleanup()

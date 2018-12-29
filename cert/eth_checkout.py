@@ -75,19 +75,26 @@ def check_conn(request):
             ec_srv = EthCert()
             ec_srv.init_key(public_key_str=res_kes["keys"][2], private_key_str=res_kes["keys"][3])
             ec_srv.serialization()
-            # 用自己的私钥解密
-            decrypt_data = ec_srv.decrypt(kw['data'])
-            if not decrypt_data:
-                return {"code": "fail", "error": ec_srv.error}
-            # 用app的公钥对解密数据进行验证签名
-            if "sign" not in kw:
-                return {"code": "fail", "error": "need sign data!"}
-            if not ec_cli.verify(decrypt_data, kw['sign']):
-                return {"code": "fail", "error": ec_cli.error}
-            try:
-                kw['decrypt'] = json.loads(decrypt_data.decode())
-            except Exception as e:
-                return {"code": "fail", "error": f"need json or json error: {e}"}
+            if kw.get("no_decrypt", None) != "no_decrypt":
+                # 用自己的私钥解密
+                decrypt_data = ec_srv.decrypt(kw['data'])
+                if not decrypt_data:
+                    return {"code": "fail", "error": ec_srv.error}
+                # 用app的公钥对解密数据进行验证签名
+                if "sign" not in kw:
+                    return {"code": "fail", "error": "need sign data!"}
+                if not ec_cli.verify(decrypt_data, kw['sign']):
+                    return {"code": "fail", "error": ec_cli.error}
+                try:
+                    kw['decrypt'] = json.loads(decrypt_data.decode())
+                except Exception as e:
+                    return {"code": "fail", "error": f"need json or json error: {e}"}
+            else:
+                # 用app的公钥对解密数据进行验证签名
+                if "sign" not in kw:
+                    return {"code": "fail", "error": "need sign data!"}
+                if not ec_cli.verify(kw["data"], kw['sign']):
+                    return {"code": "fail", "error": ec_cli.error}
             kw['verify'] = True
             kw['ec_cli'] = ec_cli
             kw['ec_srv'] = ec_srv

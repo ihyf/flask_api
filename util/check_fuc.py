@@ -4,7 +4,7 @@ def check_kv(d1, necessary_keys):
     error = ""
     for k in necessary_keys:
         if k not in d1.keys():
-            error += str(k) + " error"
+            error += str(k) + " key error"
             return error
         if not d1[k]:
             error += str(k) + " do not have value"

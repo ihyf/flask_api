@@ -46,16 +46,6 @@ URL:{baseurl}/api   **[POST]**
 ### 成功(密文)
 ```json
 {
-    "appid": "创建成功的appid", // 创建成功的APP
-    "cli_publickey": "xxx",    // 用于client的公钥，默认不返回
-    "cli_privatekey": "xxx",   // 用于client的私钥，默认返回
-    "srv_publickey": "xxx",    // 用于server的公钥，默认返回
-    "srv_privatekey": "xxx"    // 用于server的私钥，默认不返回
-}
-```
-把以上回复内容转化成字符串，再对字符串进行签名和加密后：
-```json
-{
     "result": {
         "code": "success",
         "sign": "对回复内容的签名数据",
@@ -63,6 +53,16 @@ URL:{baseurl}/api   **[POST]**
     },
     "id": 0,
     "jsonrpc": "2.0"
+}
+```
+先对data中数据进行解密，再对解密结果进行验证，data字段中的数据如下：
+```json
+{
+    "appid": "创建成功的appid", // 创建成功的APP
+    "cli_publickey": "xxx",    // 用于client的公钥，默认不返回
+    "cli_privatekey": "xxx",   // 用于client的私钥，默认返回
+    "srv_publickey": "xxx",    // 用于server的公钥，默认返回
+    "srv_privatekey": "xxx"    // 用于server的私钥，默认不返回
 }
 ```
 ### 失败(明文)
@@ -104,12 +104,6 @@ URL:{baseurl}/api   **[POST]**
 ### 成功(密文)
 ```json
 {
-    "appid": "成功删除的appid"    // 返回成功删除的APP名称
-}
-```
-把以上回复内容转化成字符串，再对字符串进行签名和加密后：
-```json
-{
     "result": {
         "code": "success",
         "sign": "对回复内容的签名数据",
@@ -117,6 +111,12 @@ URL:{baseurl}/api   **[POST]**
     },
     "id": 0,
     "jsonrpc": "2.0"
+}
+```
+先对data中数据进行解密，再对解密结果进行验证，data字段中的数据如下：
+```json
+{
+    "appid": "成功删除的appid"    // 返回成功删除的APP名称
 }
 ```
 ### 失败(明文)
@@ -167,12 +167,6 @@ URL:{baseurl}/api   **[POST]**
 ### 成功(密文)
 ```json
 {
-    "appid": "成功编辑的appid"
-}
-```
-把回复内容转换成字符串，再对字符串进行签名和加密后：
-```json
-{
     "result": {
         "code": "success",
         "sign": "对回复内容的签名数据",
@@ -180,6 +174,12 @@ URL:{baseurl}/api   **[POST]**
     },
     "id": 0,
     "jsonrpc": "2.0"
+}
+```
+先对data中数据进行解密，再对解密结果进行验证，data字段中的数据如下：
+```json
+{
+    "appid": "成功编辑的appid"
 }
 ```
 ### 失败(明文)
@@ -222,13 +222,66 @@ URL:{baseurl}/api   **[POST]**
 ### 成功(密文)
 ```json
 {
+    "result": {
+        "code": "success",
+        "sign": "对回复内容的签名数据",
+        "data": "对回复内容的加密数据"
+    },
+    "id": 0,
+    "jsonrpc": "2.0"
+}
+```
+先对data中数据进行解密，再对解密结果进行验证，data字段中的数据如下：
+```json
+{
     "appid": "成功编辑的appid",
     "ip": [],
     "ns": [],
     "srv": []
 }
 ```
-把回复内容转化成字符串，再对字符串进行签名和加密后：
+### 失败(明文)
+```json
+{
+      "result": {
+          "code": "fail", 
+          "error": "错误说明"
+      }, 
+      "id": 0, 
+      "jsonrpc": "2.0"
+}
+```
+
+# APP-重置证书信息
+---
+URL:{baseurl}/api   **[POST]**
+## 请求[上行]
+```json
+{
+    "appid": "app名称",
+    "reset_cli_keys": true,   // true/false
+    "reset_srv_keys": true,   // true/false
+    "cli_keys_length": 4096,  // 钥匙长度
+    "srv_keys_length": 4096,  // 钥匙长度
+    "r_cli_publickey": true,  // 是否返回cli的公钥  
+    "r_srv_privatekey": true  // 是否返回srv的私钥
+}
+```
+把请求内容转化成字符串，再对字符串进行签名和加密后：
+```json
+{
+    "method": "bk_reset",       // 信息获取接口
+    "params": {
+        "appid": "syncapp",    // 后台APP名称
+        "sign": "对请求内容签名后的数据",
+        "data": "对请求内容进行加密后的数据"
+    },
+    "jsonrpc": "2.0",
+    "id": 0
+}
+```
+## 回复[下行]
+### 成功(密文)
 ```json
 {
     "result": {
@@ -238,6 +291,16 @@ URL:{baseurl}/api   **[POST]**
     },
     "id": 0,
     "jsonrpc": "2.0"
+}
+```
+先对data中数据进行解密，再对解密结果进行验证，data字段中的数据如下：
+```json
+{
+    "appid": "appid的名称",
+    "cli_privatekey": "xxx",
+    "cli_publickey": "xxx",   // 如果r_cli_publickey为true,刚返回此项
+    "srv_privatekey": "xxx",  // 如果r_srv_privatekey为true,刚返回此项
+    "srv_publickey": "xxx",
 }
 ```
 ### 失败(明文)
@@ -279,6 +342,18 @@ URL:{baseurl}/api   **[POST]**
 ### 成功(密文)
 ```json
 {
+    "result": {
+        "code": "success",
+        "sign": "对回复内容的签名数据",
+        "data": "对回复内容的加密数据"
+    },
+    "id": 0,
+    "jsonrpc": "2.0"
+}
+```
+先对data中数据进行解密，再对解密结果进行验证，data字段中的数据如下：
+```json
+{
     "data": [
         {
             "appid": "appid1",
@@ -295,18 +370,6 @@ URL:{baseurl}/api   **[POST]**
             "other": "xxx"
         }
     ]
-}
-```
-把回复内容转化成字符串，再对字符串进行签名和加密后：
-```json
-{
-    "result": {
-        "code": "success",
-        "sign": "对回复内容的签名数据",
-        "data": "对回复内容的加密数据"
-    },
-    "id": 0,
-    "jsonrpc": "2.0"
 }
 ```
 ### 失败(明文)
@@ -348,12 +411,6 @@ URL:{baseurl}/api   **[POST]**
 ### 成功(密文)
 ```json
 {
-    "appid": "appid"  // APP名称
-}
-```
-把回复内容转化成字符串，再对字符串进行签名和加密后：
-```json
-{
     "result": {
         "code": "success",
         "sign": "对回复内容的签名数据",
@@ -361,6 +418,12 @@ URL:{baseurl}/api   **[POST]**
     },
     "id": 0,
     "jsonrpc": "2.0"
+}
+```
+先对data中数据进行解密，再对解密结果进行验证，data字段中的数据如下：
+```json
+{
+    "appid": "appid"  // APP名称
 }
 ```
 ### 失败(明文)
