@@ -68,7 +68,7 @@ class DeployContracts(Base):
     deploy_time = Column(String(20))
     pay_gas = Column(String(20))
     contract_address = Column(String(100))
-    service_id = Column(Integer, ForeignKey('deploy_contracts.id'), nullable=True)
+    # service_id = Column(Integer, ForeignKey('deploy_contracts.id'), nullable=True)
     
 
 class Contracts(Base):
@@ -87,16 +87,16 @@ class Tokens(Base):
     token_nick_name = Column(String(10), primary_key=True)
 
 
-class Services(Base):
-    __tablename__ = "services"
-    service_id = Column(Integer, autoincrement=True, primary_key=True)
-    service_name = Column(String(20), primary_key=True)
-    service_description = Column(String(1000))
-    contracts = relationship('DeployContracts')
+# class Services(Base):
+#     __tablename__ = "services"
+#     service_id = Column(Integer, autoincrement=True, primary_key=True)
+#     service_name = Column(String(20), primary_key=True)
+#     service_description = Column(String(1000))
+#     contracts = relationship('DeployContracts')
     
 
 class ContractOp(Base):
-    __tablename__ = "Contract operation table"
+    __tablename__ = "contract_op_table"
     op_id = Column(Integer, autoincrement=True, primary_key=True)
     contract_name = Column(String(20), primary_key=True)
     contract_address = Column(String(100), primary_key=True)

@@ -69,8 +69,8 @@ contract userRecords {
 }
 """
 
-url = "http://localhost:3000/api"
-url1 = "http://192.168.1.14:8080/api"
+url1 = "http://localhost:3000/api"
+url = "http://192.168.1.14:9000/api"
 headers = {"content-type": "application/json"}
 
 
@@ -105,5 +105,5 @@ for i in range(1):
         url, data=json.dumps(payload), headers=headers).json()
 
 print(response)
-# ddata = ec.decrypt(response["result"]["data"])
-# print(ddata)
+ddata = ec.decrypt(response["result"]["data"])
+print(ddata)

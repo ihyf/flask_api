@@ -1057,7 +1057,8 @@ URL:{baseurl}/api
             "contract_name": "合约名",
             "contract_content": "合约内容",
             "master_contract_name": "该子合约所属主合约名",
-            "time": 1111
+            "master_contract_address": "该子合约所属主合约地址",
+            "time": 1234
         }
     },
     "jsonrpc": "2.0",

@@ -136,7 +136,7 @@ def deploy_contract(*args, **kwargs):
     data = kwargs.get("data", None)
     if data is None:
         return {"code": "fail", "error": "no data"}
-    necessary_keys = ["contract_name", "contract_content", "master_contract_name"]
+    necessary_keys = ["contract_name", "contract_content", "master_contract_name", "master_contract_address"]
     check = check_kv(data, necessary_keys)
     if check == "Success":
         contract_name = data.get("contract_name")
@@ -215,7 +215,7 @@ def add_master_contract(*args, **kwargs):
         master_contract1 = "pragma solidity ^0.4.25;\n\ncontract recordAddr"
         master_contract2 = """{
     address [] contractAddr;
-    
+
     //添加地址
     function setAddr(address _addr)public{
         contractAddr.push(_addr);
@@ -225,10 +225,10 @@ def add_master_contract(*args, **kwargs):
         return contractAddr;
     }
 }"""
-        with open("master_contracts/{}_recordAddr".format(master_contract_name), "w", encoding="utf-8") as f:
+        with open("master_contracts/{}_recordAddr.sol".format(master_contract_name), "w", encoding="utf-8") as f:
             f.write(master_contract1+master_contract2)
             f.close()
-            
+
         # 部署合约
         account = w3.eth.accounts[1]
         pay_gas = 1
@@ -246,6 +246,7 @@ def add_master_contract(*args, **kwargs):
         deploy_time = time.strftime("%Y-%m-%d %X", time.localtime())
         new_dc = DeployContracts(contract_name=master_contract_name, address=account, tx_hash=tx_hash,
                                  deploy_time=deploy_time, pay_gas=pay_gas, contract_address=contract_address[0])
+        
         session.add(new_dc)
         session.commit()
         session.close()
