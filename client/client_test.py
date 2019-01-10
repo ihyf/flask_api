@@ -9,8 +9,8 @@ import time
     }" http://localhost:4000/api
 """
 def main():
-    url = "http://localhost:3000/api"
-    url1 = "http://192.168.1.14:8080/api"
+    url1 = "http://localhost:9000/api"
+    url = "http://192.168.1.14:9000/api"
     headers = {"content-type": "application/json"}
     
     keystore = {
@@ -34,19 +34,19 @@ def main():
         "version": 3
     }
 
-    payload = {
-        "method": "create_account",
-        "params": {
-            "appid": "hyf_app",
-            "sign": "",
-            "data": {
-                "pwd": "hyf",
-                "time": time.time()
-            }
-        },
-        "jsonrpc": "2.0",
-        "id": 0
-    }
+    # payload = {
+    #     "method": "create_account",
+    #     "params": {
+    #         "appid": "hyf_app",
+    #         "sign": "",
+    #         "data": {
+    #             "pwd": "hyf",
+    #             "time": time.time()
+    #         }
+    #     },
+    #     "jsonrpc": "2.0",
+    #     "id": 0
+    # }
 
     # payload = {
     #     "method": "send_transaction",
@@ -94,19 +94,24 @@ def main():
 #     "jsonrpc": "2.0",
 #     "id": ""
 # }
-#     payload = {
-#         "method": "get_balance",
-#         "params": {
-#             "appid": "hyf_app",
-#             "sign": "",
-#             "data": {
-#                 "address": ["0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1", "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1", "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1", "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1"],
-#                 "time": time.time()
-#             }
-#         },
-#         "jsonrpc": "2.0",
-#         "id": 0
-#     }
+    payload = {
+        "method": "get_balance",
+        "params": {
+            "appid": "hyf_app",
+            "sign": "",
+            "data": {
+                "address": [
+    "0x5112f5B7Fea80cADc1F103Cc9A9805c2a4B116aE",
+    "0x2d3168E80413Ac2799Bbb24BAE54825C057819C7",
+    "0x32b1a7eb38F52fca841843789E114f46e682d165",
+    "0x148cB4b6953669ee3ecc74d060Fb7c2475201b66"
+],
+                "time": time.time()
+            }
+        },
+        "jsonrpc": "2.0",
+        "id": 0
+    }
     
     from cert.eth_certs import EthCert
     ec = EthCert("hyf_app")

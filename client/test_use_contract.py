@@ -34,13 +34,13 @@ Private Keys
 
 """
 "0xd87f9a8fe5e66cf3e1e06d8f6c4774fba4da372731dd2828186fe06aa373669f"
-a0 = "0xaad3d1d86f19b85db4dc8f8cd8edfdcd1884e4dc"
-a2 = "0xa318706e0a9159feddcbfbb0a29bbef56a8072a5"
-a3 = "0x9eb9ed62affe924a19c442a198487c721b1b89f4"
-a4 = "0x265dbf9c8131c7d2b25d1636201022b015d75470"
+a8 = "0x57e82bbbd0c74f3ac30a9a113bbb6ce01b73cd63"
+a9 = "0x7c8f12a654d8f076a39b98aa91c1bcf27de65ff6"
+a7 = "0x2b693894a85adaaefadac4c3f88656c834c3eb44"
+a6 = "0x607ec8da785357220474c8660ce44b7f711822fc"
 
 
-a1 = "0x36bfff2e76b644ef5a94359a81379bee386db371"
+a1 = "0xadf7062978ecb215e4326e821d8ea0b4d34bbcbf"
 "betting" "getRandom" "result"
 
 "transfer_contract" "getNumPlayerArr"  "setChooseGame" "tBetting" "tResult" "getGameNum"
@@ -51,7 +51,7 @@ payload = {
             "sign": "",
             "data": {
                 "account": a1,
-                "contract_name": "luckyNumber",
+                "contract_name": "hyf_master_02_slave_01",
                 "func_name": "getGameNum",
                 "func_param": "",
                 "value": 0,

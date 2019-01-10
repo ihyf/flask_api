@@ -36,6 +36,7 @@ class Apps(Base):
     srv_publickey = Column(Text, nullable=False)
     srv_privatekey = Column(Text, nullable=False)
     srv = Column(JSON, nullable=False)
+    master_contract_address = Column(JSON, nullable=False, default=[])
     status = Column(Integer, nullable=False)
 
 
@@ -68,12 +69,12 @@ class DeployContracts(Base):
     deploy_time = Column(String(20))
     pay_gas = Column(String(20))
     contract_address = Column(String(100))
+    master_mark = Column(String(20))
     # service_id = Column(Integer, ForeignKey('deploy_contracts.id'), nullable=True)
     
 
 class Contracts(Base):
     __tablename__ = "contracts"
-    contract_id = Column(Integer, autoincrement=True, primary_key=True)
     contract_id = Column(Integer, autoincrement=True, primary_key=True)
     contract_address = Column(String(100), primary_key=True)
     contract_version = Column(String(20))
@@ -98,7 +99,7 @@ class Tokens(Base):
 class ContractOp(Base):
     __tablename__ = "contract_op_table"
     op_id = Column(Integer, autoincrement=True, primary_key=True)
-    contract_name = Column(String(20), primary_key=True)
+    contract_name = Column(String(200), primary_key=True)
     contract_address = Column(String(100), primary_key=True)
     op_info = Column(PickleType)
     op_time = Column(String(20))

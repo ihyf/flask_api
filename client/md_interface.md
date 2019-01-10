@@ -624,6 +624,7 @@ URL:{baseurl}/api   **[POST]**
     "ip": ["192.168.100.0/24", "192.168.100.1", "218.85.0.0/255.255.0.0"],     // 用于APP接入端，请求IP验证
     "ns": ["www.zzy.com", "*.zzy.com", "*zzy.com"],    // 用于APP接入端，请求域名验证
     "srv": ["srv1", "srv2", "srv3"],  // 用于APP开放服务的验证
+    "master_contract_address": ["address1", "address2"],  // 传入合约地址
     "status": 0,                      // 表示APP所处状态，功能暂定
     "time": "提交时间， 格式：Unix时间戳"   // 每次提交都必须生成新的时间
 }
@@ -1041,7 +1042,7 @@ URL:{baseurl}/api
 error
 {"result": {"code": "fail":,"error": "xx error"}, "id": 0, "jsonrpc": "2.0"}
 ```
-# 合约-部署合约函数
+# 合约-部署子合约
 ---
 URL:{baseurl}/api
 ## 上行
@@ -1081,7 +1082,11 @@ URL:{baseurl}/api
         "sign": "",
         "data": {
             "code": "success",
-            "data": {}
+            "data": {
+                "contract_name": "",
+                "tx_hash": "",
+                "contract_address": ""
+            }
         }
     }
 }

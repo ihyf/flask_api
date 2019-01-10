@@ -48,6 +48,9 @@ def bk_create(*args, **kwargs):
     srv = origin.get("srv", [])
     if not isinstance(srv, list):
         return {"code": "fail", "error": "srv filed error"}
+    master_contract_address = origin.get("master_contract_address", [])
+    if not isinstance(master_contract_address, list):
+        return {"code": "fail", "error": "master_contract_address filed error"}
     status = origin.get("status")
     if not isinstance(status, int):
         return {"code": "fail", "error": "status filed error"}
@@ -108,6 +111,7 @@ def bk_create(*args, **kwargs):
         srv_publickey=srv_publickey,
         srv_privatekey=srv_privatekey,
         srv=srv,
+        master_contract_address=master_contract_address,
         status=status
     )
     session.add(app)
@@ -185,6 +189,8 @@ def bk_edit(*args, **kwargs):
         app.ip = origin['ip']
     if 'ns' in origin and isinstance(origin['ns'], list):
         app.ns = origin['ns']
+    if 'master_contract_address' in origin and isinstance(origin['master_contract_address'], list):
+        app.master_contract_address = origin['master_contract_address']
     ec = EthCert()
     if 'cli_publickey' in origin and origin['cli_publickey']:
         ec.init_key(public_key_str=origin['cli_publickey'])

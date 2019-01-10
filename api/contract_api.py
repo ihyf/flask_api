@@ -31,29 +31,30 @@ def transfer_contract(*args, **kwargs):
             datastore = json.load(f)
         abi = datastore["abi"]
         contract_address = datastore["contract_address"]
-        contract_name = w3.eth.contract(address=contract_address, abi=abi)
+        contract_instance = w3.eth.contract(address=contract_address, abi=abi)
         account = w3.toChecksumAddress(account)
-        
+
         if "get" not in func_name and "set" not in func_name:
-            tx_hash = eval("contract_name.functions.{func_name}({func_param})."
+            tx_hash = eval("contract_instance.functions.{func_name}({func_param})."
                            "transact({{'from': '{account}', 'value': w3.toWei({value}, 'ether')}})".
-                           format(contract_name=contract_name, func_name=func_name,
+                           format(func_name=func_name,
                                   func_param=func_param, account=account, value=value))
             w3.eth.waitForTransactionReceipt(tx_hash)
 
             result = {"data": "{} ok".format(func_name)}
         elif "set" in func_name:
-            tx_hash = eval("contract_name.functions.{func_name}({func_param})."
+            tx_hash = eval("contract_instance.functions.{func_name}({func_param})."
                            "transact({{'from': '{account}', 'value': w3.toWei(0, 'ether')}})".
-                           format(contract_name=contract_name, func_name=func_name,
+                           format(func_name=func_name,
                                   func_param=func_param, account=account))
             w3.eth.waitForTransactionReceipt(tx_hash)
 
             result = {"data": "set {} ok".format(func_name)}
-        
+
         elif "get" in func_name:
-            result = eval("contract_name.functions.{func_name}({func_param}).call()".
-                          format(contract_name=contract_name, func_name=func_name, func_param=func_param))
+            result = eval("contract_instance.functions.{func_name}({func_param}).call()".
+                          format(func_name=func_name, func_param=func_param))
+            tx_hash = ""
 
         # 插入数据库 预留
         try:
@@ -64,6 +65,10 @@ def transfer_contract(*args, **kwargs):
                 "value": value
             }
             op_time = time.strftime("%Y-%m-%d %X", time.localtime())
+            if tx_hash:
+                tx_hash = tx_hash.hex()
+            else:
+                tx_hash = "无"
             op = ContractOp(contract_name=contract_name, contract_address=contract_address,
                             op_info=op_info, op_time=op_time, tx_hash=tx_hash)
             session.add(op)
@@ -151,11 +156,11 @@ def deploy_contract(*args, **kwargs):
         contract_address, abi = deploy_n_transact([f'contracts/{contract_name}.sol'], account=account)
         tx_hash = contract_address[1]
         with open(f'json_files/data_{contract_name}.json', 'w') as outfile:
-            data = {
+            json_data = {
                 "abi": abi,
                 "contract_address": contract_address[0]
             }
-            json.dump(data, outfile, indent=4, sort_keys=True)
+            json.dump(json_data, outfile, indent=4, sort_keys=True)
         # 调用主合约函数，将子合约传入主合约
         master_contract_name = data.get("master_contract_name", None)
         with open(f"master_contracts/master_contracts_json/{master_contract_name}_recordAddr.json", 'r') as f:
@@ -163,13 +168,12 @@ def deploy_contract(*args, **kwargs):
         abi = datastore["abi"]
         master_contract_address = datastore["contract_address"]
         func_name = "setAddr"
-        func_param = "contract_address[0]"
-        contract = w3.eth.contract(address=master_contract_address, abi=abi)
+        func_param = contract_address[0]
+        contract_instance = w3.eth.contract(address=master_contract_address, abi=abi)
         account = w3.toChecksumAddress(account)
-        master_tx_hash = eval("contract_name.functions.{func_name}({func_param})."
-                              "transact({{'from': '{account}', 'value': w3.toWei(0, 'ether')}})".
-                              format(contract_name=contract, func_name=func_name,
-                                     func_param=func_param, account=account))
+        s1 = "functions.{func_name}('{func_param}').transact({{'from': '{account}'}})".format(func_name=func_name, func_param=func_param, account=account)
+        master_tx_hash = eval("contract_instance."+s1)
+
         w3.eth.waitForTransactionReceipt(master_tx_hash)
         # 插入数据库
         try:
@@ -245,7 +249,8 @@ def add_master_contract(*args, **kwargs):
         session = db_manager.master()
         deploy_time = time.strftime("%Y-%m-%d %X", time.localtime())
         new_dc = DeployContracts(contract_name=master_contract_name, address=account, tx_hash=tx_hash,
-                                 deploy_time=deploy_time, pay_gas=pay_gas, contract_address=contract_address[0])
+                                 deploy_time=deploy_time, pay_gas=pay_gas, contract_address=contract_address[0],
+                                 master_mark="master")
         
         session.add(new_dc)
         session.commit()

@@ -22,7 +22,7 @@ class DianDian(object):
             'content-type': "application/json",
             'Authorization': 'PyCharm Test'
         }
-        response = requests.post("http://127.0.0.1:3000/api", data=json.dumps(data), headers=headers)
+        response = requests.post("http://127.0.0.1:9000/api", data=json.dumps(data), headers=headers)
         return response.text
 
     def request_json(self, method, sign, encrypt):
@@ -69,16 +69,16 @@ class DianDian(object):
         else:
             print("Match")
 
-    def bk_create(self):
+    def bk_create(self, appid="None"):
         data = {
-            "appid": "syncapp",
-            "desc": "创建测试用例3",
+            "appid": appid,
+            "desc": "测试数据_可以随意删除",
             "create_cli_keys": True,
             "create_srv_keys": True,
-            "cli_keys_length": 4096,
-            "srv_keys_length": 4096,
-            "r_cli_publickey": True,
-            "r_srv_privatekey": True,
+            "cli_keys_length": 1024,
+            "srv_keys_length": 1024,
+            "r_cli_publickey": False,
+            "r_srv_privatekey": False,
             "cli_keys": {
                  "cli_publickey": "",
                  "cli_privatekey": ""
@@ -173,8 +173,10 @@ class DianDian(object):
 if __name__ == "__main__":
     dd = DianDian()
     # dd.bk_remove()
-    # dd.bk_create()
-    dd.bk_reset()
+    for i in range(5):
+        name = f"appid_bk_inc3_{i}"
+        dd.bk_create(appid=name)
+    # dd.bk_reset()
     # dd.bk_edit()
     # dd.bk_info()
     # dd.bk_status()

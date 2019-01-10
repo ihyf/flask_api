@@ -38,6 +38,9 @@ def check_conn(request):
             if keystatus is not True:
                 return res_kes
             # srv
+            if request.is_json is False:
+                # 要求Content-Type为：application/json
+                return {"code": "fail", "error": "content type error!"}
             if "method" not in request.json or not request.json['method']:
                 return {"code": "fail", "error": "method error!"}
             if request.json['method'] not in res_kes["srv"]:
@@ -110,7 +113,15 @@ def delete_checkout_redis(appid):
     checkout_srv = "checkout_{0}_srv".format(appid)
     # faster_rc = "rfaster_check_{0}".format(appid)
     checkout_update = "checkout_{0}_update".format(appid)
-    redis_store.delete(checkout_keys, checkout_ns, checkout_ip, checkout_srv, checkout_update)
+    checkout_mc_address = "checkout_{0}_mcaddress".format(appid)
+    redis_store.delete(
+        checkout_keys,
+        checkout_ns,
+        checkout_ip,
+        checkout_srv,
+        checkout_update,
+        checkout_mc_address
+    )
 
 
 def get_keys(appid):
@@ -119,11 +130,13 @@ def get_keys(appid):
     checkout_ip = "checkout_{0}_ip".format(appid)
     checkout_srv = "checkout_{0}_srv".format(appid)
     checkout_update = "checkout_{0}_update".format(appid)
+    checkout_mc_address = "checkout_{0}_mcaddress".format(appid)
     res_kes = {
         "keys": None,
         "ns": None,
         "ip": None,
-        "srv": None
+        "srv": None,
+        "master_contract_address": None,
     }
     if redis_store.exists(checkout_keys) == 0:
         session = db_manager.slave()
@@ -142,23 +155,39 @@ def get_keys(appid):
                 app.srv_publickey,
                 app.srv_privatekey,
         ]
-        redis_store.delete(checkout_keys, checkout_ns, checkout_ip, checkout_srv)
-        redis_store.rpush(checkout_keys, res_kes["keys"][0], res_kes["keys"][1], res_kes["keys"][2], res_kes["keys"][3])
+        redis_store.delete(
+            checkout_keys,
+            checkout_ns,
+            checkout_ip,
+            checkout_srv,
+            checkout_mc_address
+        )
+        redis_store.rpush(
+            checkout_keys,
+            res_kes["keys"][0],
+            res_kes["keys"][1],
+            res_kes["keys"][2],
+            res_kes["keys"][3]
+        )
         res_kes["ns"] = app.ns
         res_kes["ip"] = app.ip
         res_kes["srv"] = app.srv
+        res_kes["master_contract_address"] = app.master_contract_address
         if res_kes["ns"]:
             redis_store.rpush(checkout_ns, *res_kes["ns"])
         if res_kes["ip"]:
             redis_store.rpush(checkout_ip, *res_kes["ip"])
         if res_kes["srv"]:
             redis_store.rpush(checkout_srv, *res_kes["srv"])
+        if res_kes["master_contract_address"]:
+            redis_store.rpush(checkout_mc_address, *res_kes["master_contract_address"])
         redis_store.set(checkout_update, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     else:
         res_kes["keys"] = redis_store.lrange(checkout_keys, 0, 3)
         res_kes["ns"] = redis_store.lrange(checkout_ns, 0, -1)
         res_kes["ip"] = redis_store.lrange(checkout_ip, 0, -1)
         res_kes["srv"] = redis_store.lrange(checkout_srv, 0, -1)
+        res_kes["master_contract_address"] = redis_store.lrange(checkout_mc_address, 0, -1)
     return True, res_kes
 
 

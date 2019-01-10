@@ -4,72 +4,125 @@ import json
 import time
 from cert.eth_certs import EthCert
 
-sss = """// solidity compiler version
-// use solidity --version
-// https://solidity.readthedocs.io/en/v0.4.24/layout-of-source-files.html#version-pragma
-pragma solidity ^0.4.21;
+sss = """pragma solidity ^0.4.0;
 
-// import library file
-// https://solidity.readthedocs.io/en/v0.4.24/layout-of-source-files.html#importing-other-source-files
-// we should use libraries for common utility functions
-//  source https://github.com/ethereum/dapp-bin/tree/master/library
-// Library only compiled once and used again and again
-import "contracts/stringUtils.sol";
-
-
-contract userRecords {
-
-    // enum type variable to store user gender
-    enum genderType { male, female }
-    // Actual user object which we will store
-    // This similar to model/schema file in our Restful-app-backend
-    struct user{
-        string name;
-        genderType gender;
+contract luckyNumber{
+    
+    uint32 gameType;//游戏类型
+    uint gameBet;//该场次下注金额
+    address[][] numPlayer;//每个押注号码的玩家集合
+    uint32  totalPlayerNum = 0;
+    mapping(address=>uint32) betPlayerNumber;//玩家地址=>编号
+    mapping(uint32=>address) betPlayerAddress;//玩家编号=>地址
+    mapping(uint32=>uint32) playerBetNumber;//玩家编号=>投注数
+    address private owner;
+    uint32 gameNumber;
+    uint bonusMoney;
+    uint myMoney;
+    constructor()public{
+        owner = msg.sender;
     }
-
-    // user object
-    // you can also declare it public to access it from outside contract
-    // https://solidity.readthedocs.io/en/v0.4.24/contracts.html#visibility-and-getters
-    user user_obj;
-    // Internal function to conver genderType enum from string
-    function getGenderFromString(string gender) internal returns (genderType) {
-        if(StringUtils.equal(gender, "male")) {
-            return genderType.male;
-        } else {
-            return genderType.female;
+    //修饰符
+    modifier onlyOwner{
+        require(owner == msg.sender);
+        _;
+    }
+    //选择场次
+    function setChooseGame(uint32 _num) public onlyOwner returns(bool){
+        require(_num==3 || _num== 5 || _num==7);
+        gameType = _num;
+        if(_num==3){
+            gameBet = 0.5 ether;
+        }else if(_num==5){
+            gameBet = 2 ether;
+        }else{
+            gameBet = 5 ether;
         }
+        numPlayer = new address[][](_num+1);
+        return true;
     }
-    // Internal function to conver genderType enum to string
-    function getGenderToString(genderType gender) internal returns (string) {
-        if(gender == genderType.male) {
-            return "male";
-        } else {
-            return "female";
+    //下注
+    function tBetting(uint32 _betNumber) payable public returns(bool){
+        require(_betNumber<=gameType && _betNumber!=0);
+        require(msg.value>=gameBet);
+        require(betPlayerNumber[msg.sender]==0);
+        if(msg.value>gameBet){
+            msg.sender.transfer(msg.value-gameBet);
         }
+        uint32 nonce;//玩家编号
+        nonce = totalPlayerNum+1;
+        betPlayerNumber[msg.sender] = nonce;
+        betPlayerAddress[nonce] = msg.sender;
+        playerBetNumber[nonce]=_betNumber;//记录玩家下注号码
+        numPlayer[_betNumber].push(msg.sender);
+        totalPlayerNum++;
+        return true;
     }
-
-    // set user public function
-    // This is similar to persisting object in db.
-    function setUser(string name, string gender) public {
-        genderType gender_type = getGenderFromString(gender);
-        user_obj = user({
-            name:name, gender: gender_type
-        });
+    //获得结果,一分钟调用一次
+    function tResult()payable public onlyOwner returns(uint32){
+        uint32 result = getNumber();
+        bonusMoney = address(this).balance * 82/100;
+        myMoney = address(this).balance * 18/100;
+        if(numPlayer[result].length==0){
+            for(uint32 i=0;i<totalPlayerNum;i++){
+                betPlayerAddress[i+1].transfer(bonusMoney/totalPlayerNum);
+            }
+        }else{
+            for(uint j=0;j<numPlayer[result].length;j++){
+                numPlayer[result][j].transfer(bonusMoney/numPlayer[result].length);
+            }
+        }
+        owner.transfer(myMoney);
+        for(uint32 k=0;k<totalPlayerNum;k++){
+            delete betPlayerNumber[betPlayerAddress[k+1]];
+            delete betPlayerAddress[k+1];
+            delete playerBetNumber[k+1];
+        }
+        delete numPlayer;
+        numPlayer.length = gameType+1;
+        delete totalPlayerNum;
+        return result;
     }
-
-    // get user public function
-    // This is similar to getting object from db.
-    function getUser() public returns (string, string) {
-        return (
-            user_obj.name, getGenderToString(user_obj.gender)
-        );
+    //获得摇出点数
+    function getNumber() private returns(uint32){
+        uint nonce = 0;
+        while(true){
+            uint32 random = uint32(keccak256(now, msg.sender,nonce)) % (gameType+1);
+            if(random!=0){
+                break;
+            }
+            nonce++;
+        }
+        gameNumber = random;
+        return random;
     }
+    //获取合约里的余额
+    function getBalance()view public returns(uint){
+        return address(this).balance;
+    }
+    //获取结果点数
+    function getGameNum()view public returns(uint32){
+        return gameNumber;
+    }
+    //获取奖池里的金额
+    function getbonusMoney()view public returns(uint){
+        return bonusMoney;
+    }
+    // function numPlayerl()view public returns(uint){
+    //     return numPlayer[5].length;
+    // }
+    //获取庄家的分红
+    function getMyMoney()view public returns(uint){
+        return myMoney;
+    }
+    // function getOnePlayerAddr()view public returns(address){
+    //     return betPlayerAddress[1];
+    // }
 }
 """
 
-url = "http://localhost:3000/api"
-url1 = "http://192.168.1.14:8080/api"
+url1 = "http://localhost:3000/api"
+url = "http://192.168.1.14:9000/api"
 headers = {"content-type": "application/json"}
 
 
@@ -80,8 +133,10 @@ payload = {
             "sign": "",
             "no_decrypt": "no_decrypt",
             "data": {
-                "contract_name": "contract_name",
+                "contract_name": "hyf_master_02_slave_01",
                 "contract_content": sss,
+                "master_contract_name": "hyf_master_02",
+                "master_contract_address": "0x2b6F309826F0D07DA26D8498A750cd56E122c0E4",
                 "time": time.time()
             }
         },
