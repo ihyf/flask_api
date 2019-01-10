@@ -28,6 +28,7 @@ class Apps(Base):
     __tablename__ = 'apps'
     id = Column(Integer, autoincrement=True, primary_key=True, nullable=False)
     appid = Column(String(200), primary_key=True, nullable=False, unique=True)
+    parent_appid = Column(String(200), nullable=False, default="unknow")
     desc = Column(String(200), nullable=False)
     ip = Column(JSON, nullable=False)
     ns = Column(JSON, nullable=False)

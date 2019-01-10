@@ -169,18 +169,27 @@ class DianDian(object):
         result = self.action(data, 'bk_reset')
         print("bk_reset <=>", result)
 
+    def bk_lists(self):
+        data = {
+            "time": time.time(),
+            "parent_appid": "app"
+        }
+        result = self.action(data, 'bk_lists')
+        print("bk_lists <=>", result)
+
 
 if __name__ == "__main__":
     dd = DianDian()
     # dd.bk_remove()
-    for i in range(5):
-        name = f"appid_bk_inc3_{i}"
-        dd.bk_create(appid=name)
+    # for i in range(10):
+    #     name = f"appid_bk_inc4_{i}"
+    #     dd.bk_create(appid=name)
     # dd.bk_reset()
     # dd.bk_edit()
     # dd.bk_info()
     # dd.bk_status()
     # dd.bk_cleanup()
+    dd.bk_lists()
 
 
 

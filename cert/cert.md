@@ -300,7 +300,7 @@ URL:{baseurl}/api   **[POST]**
     "cli_privatekey": "xxx",
     "cli_publickey": "xxx",   // 如果r_cli_publickey为true,刚返回此项
     "srv_privatekey": "xxx",  // 如果r_srv_privatekey为true,刚返回此项
-    "srv_publickey": "xxx",
+    "srv_publickey": "xxx"
 }
 ```
 ### 失败(明文)
@@ -425,6 +425,74 @@ URL:{baseurl}/api   **[POST]**
 {
     "appid": "appid"  // APP名称
 }
+```
+### 失败(明文)
+```json
+{
+      "result": {
+          "code": "fail", 
+          "error": "错误说明"
+      }, 
+      "id": 0, 
+      "jsonrpc": "2.0"
+}
+```
+
+# APP-获取app的列表
+---
+URL:{baseurl}/api   **[POST]**
+## 请求[上行]
+```json
+{
+    "time": "提交时间",
+    "parent_appid": "parent_appid"   // 创建者，没有此字段的时候返回所有
+}
+```
+把请求内容转化成字符串，再对字符串进行签名和加密后：
+```json
+{
+    "method": "bk_lists",
+    "params": {
+        "appid": "syncapp",
+        "sign": "对请求内容签名后的数据",
+        "data": "对请求内容进行加密后的数据"
+    },
+    "jsonrpc": "2.0",
+    "id": 0
+}
+```
+## 回复[下行]
+### 成功(密文)
+```json
+{
+    "result": {
+        "code": "success",
+        "sign": "对回复内容的签名数据",
+        "data": "对回复内容的加密数据"
+    },
+    "id": 0,
+    "jsonrpc": "2.0"
+}
+```
+先对data中数据进行解密，再对解密结果进行验证，data字段中的数据如下：
+```json
+[
+    {
+      "appid": "名称",
+      "parent_appid": "创建者",
+      "desc": "xxxxx"
+    },
+    {
+      "appid": "名称",
+      "parent_appid": "创建者",
+      "desc": "xxxxx"
+    },
+    {
+      "appid": "名称",
+      "parent_appid": "创建者",
+      "desc": "xxxxx"
+    }
+]
 ```
 ### 失败(明文)
 ```json

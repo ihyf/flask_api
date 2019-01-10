@@ -103,6 +103,7 @@ def bk_create(*args, **kwargs):
             return {"code": "fail", "error": "srv_keys error, serialization fail"}
     app = Apps(
         appid=origin['appid'],
+        parent_appid=kwargs['appid'],
         desc=desc,
         ip=ip,
         ns=ns,
@@ -324,6 +325,39 @@ def bk_info(*args, **kwargs):
         "data": encrypt.decode()
     }
     return response
+
+@api_add
+@check_conn(request)
+def bk_lists(*args, **kwargs):
+    origin = kwargs['decrypt']
+    parent_appid = origin.get("parent_appid", None)
+    session = db_manager.slave()
+    try:
+        if isinstance(parent_appid, str):
+            apps = session.query(Apps).filter(Apps.parent_appid == parent_appid)
+        else:
+            apps = session.query(Apps)
+        session.close()
+    except Exception as e:
+        return {"code": "fail", "error": f"{e}"}
+    r_apps = []
+    for app in apps:
+        result = {
+            "appid": app.appid,
+            "parent_appid": app.parent_appid,
+            "desc": app.desc,
+        }
+        r_apps.append(result)
+    result_str = json.dumps(r_apps, ensure_ascii=False)
+    sign = kwargs['ec_srv'].sign(result_str)
+    encrypt = kwargs['ec_cli'].encrypt(result_str)
+    response = {
+        "code": "success",
+        "sign": sign.decode(),
+        "data": encrypt.decode()
+    }
+    return response
+
 
 @api_add
 @check_conn(request)
