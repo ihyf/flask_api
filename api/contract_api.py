@@ -144,13 +144,13 @@ def deploy_contract(*args, **kwargs):
     if data is None:
         return {"code": "fail", "error": "no data"}
     data = eval(data)
-    necessary_keys = ["contract_name", "contract_content", "master_contract_name", "master_contract_address"]
+    necessary_keys = ["contract_name", "contract_content", "master_contract_name", "url"]
     check = check_kv(data, necessary_keys)
     if check == "Success":
         contract_name = data.get("contract_name")
-        # contract_content = data.get("contract_content")
+        url = data.get("url")
         # 获取子合约
-        url = config.contract_url+contract_name+".sol"
+        # url = config.contract_url+contract_name+".sol"
         response = requests.get(url)
         contract_content = response.content.decode()
         print(response.content)

@@ -131,13 +131,13 @@ payload = {
         "params": {
             "appid": "syncapp",
             "sign": "",
-            "data": {
-                "contract_name": "hyf_master_02_slave_111",
-                "contract_content": sss,
-                "master_contract_name": "hyf_master_010",
-                "master_contract_address": "0x234d537b15b2c1Ff6807f4748b6e9A4D3e28b2E4",
-                "time": time.time()
-            },
+            "data": """{
+                "contract_name": "luckyNumber",
+                "contract_content": "1",
+                "master_contract_name": "hyf_master_0111",
+                "master_contract_address": "0x486BD2999287B8C3fbD7468368a6e824CF89eB72",
+                "time": 111
+            }""",
             "no_decrypt": "no_decrypt"
         },
         "jsonrpc": "2.0",
@@ -156,10 +156,10 @@ ec1.load_key_from_file()
 ec1.serialization()
 # payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
 
-# for i in range(1):
-#     response = requests.post(
-#         url, data=json.dumps(payload), headers=headers).json()
+for i in range(1):
+    response = requests.post(
+        url, data=json.dumps(payload), headers=headers).json()
 print(json.dumps(payload))
-# print(response)
-# ddata = ec.decrypt(response["result"]["data"])
-# print(ddata)
+print(response)
+ddata = ec.decrypt(response["result"]["data"])
+print(ddata)
