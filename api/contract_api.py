@@ -11,6 +11,8 @@ from util.check_fuc import check_kv
 from util.compile_solidity_utils import deploy_n_transact
 from util.mysql_db import db_manager, DeployContracts, ContractOp
 from util.dbmanager import db_manager
+import requests
+import config
 
 
 @api_add
@@ -141,15 +143,21 @@ def deploy_contract(*args, **kwargs):
     data = kwargs.get("data", None)
     if data is None:
         return {"code": "fail", "error": "no data"}
+    data = eval(data)
     necessary_keys = ["contract_name", "contract_content", "master_contract_name", "master_contract_address"]
     check = check_kv(data, necessary_keys)
     if check == "Success":
         contract_name = data.get("contract_name")
-        contract_content = data.get("contract_content")
-        # 上传合约
+        # contract_content = data.get("contract_content")
+        # 获取子合约
+        url = config.contract_url+contract_name+".sol"
+        response = requests.get(url)
+        contract_content = response.content.decode()
+        print(response.content)
         with open(f"contracts/{contract_name}.sol", "w", encoding="utf-8") as f:
             f.write(contract_content)
             f.close()
+
         # 部署合约
         account = w3.eth.accounts[1]
         pay_gas = 1

@@ -129,37 +129,37 @@ headers = {"content-type": "application/json"}
 payload = {
         "method": "deploy_contract",
         "params": {
-            "appid": "hyf_app",
+            "appid": "syncapp",
             "sign": "",
-            "no_decrypt": "no_decrypt",
             "data": {
-                "contract_name": "hyf_master_02_slave_01",
+                "contract_name": "hyf_master_02_slave_111",
                 "contract_content": sss,
-                "master_contract_name": "hyf_master_02",
-                "master_contract_address": "0x2b6F309826F0D07DA26D8498A750cd56E122c0E4",
+                "master_contract_name": "hyf_master_010",
+                "master_contract_address": "0x234d537b15b2c1Ff6807f4748b6e9A4D3e28b2E4",
                 "time": time.time()
-            }
+            },
+            "no_decrypt": "no_decrypt"
         },
         "jsonrpc": "2.0",
         "id": 0
     }
 
 
-ec = EthCert("hyf_app")
+ec = EthCert("syncapp")
 ec.load_key_from_file()
 ec.serialization()
 sign = ec.sign(payload["params"]["data"])
 payload["params"]["sign"] = sign.decode()
 
-ec1 = EthCert("hyf_srv")
+ec1 = EthCert("syncapp")
 ec1.load_key_from_file()
 ec1.serialization()
 # payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
 
-for i in range(1):
-    response = requests.post(
-        url, data=json.dumps(payload), headers=headers).json()
-
-print(response)
-ddata = ec.decrypt(response["result"]["data"])
-print(ddata)
+# for i in range(1):
+#     response = requests.post(
+#         url, data=json.dumps(payload), headers=headers).json()
+print(json.dumps(payload))
+# print(response)
+# ddata = ec.decrypt(response["result"]["data"])
+# print(ddata)
