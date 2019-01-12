@@ -1,12 +1,12 @@
 # coding:utf-8
 import pickle
-from web3 import Web3
+from web3 import Web3, WebsocketProvider
 from solc import compile_files, link_code
 import config
 # web3.py instance
 w3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
 # w3 = Web3(Web3.HTTPProvider(config.w3_url))
-
+# w3 = Web3(WebsocketProvider('ws://127.0.0.1:8546'))
 
 def separate_main_n_link(file_path, contracts):
     # separate out main file and link files
@@ -36,7 +36,7 @@ def deploy_contract(contract_interface, account):
     return tx_receipt['contractAddress'], tx_hash.hex()
 
 
-def deploy_n_transact(file_path, mappings=[], account=w3.eth.accounts[1]):
+def deploy_n_transact(file_path, mappings=[], account=w3.eth.accounts[0]):
     # compile all files
     contracts = compile_files(file_path, import_remappings=mappings)
     link_add = {}

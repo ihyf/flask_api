@@ -295,14 +295,18 @@ def export_keystore(*args, **kwargs):
 def get_all_transaction(*args, **kwargs):
     # 交易列表
     data = kwargs['decrypt']
+    necessary_keys = ["address", "page", "limit"]
     address = data.get("address", None)
-    necessary_keys = ["address"]
+    page = data.get("page", 1)-1
+    limit = data.get("limit", 10)
     check = check_kv(data, necessary_keys)
     if check == "Success":
         session = db_manager.slave()
         try:
-            r_list = session.query(TransactionRecord).filter(or_(TransactionRecord.from_address == address,
-                                                                 TransactionRecord.to_address == address)).all()
+            r_list = session.query(TransactionRecord).\
+                filter(or_(TransactionRecord.from_address == address,
+                           TransactionRecord.to_address == address)).\
+                order_by(-TransactionRecord.transaction_time)[page*limit:(page+1)*limit]
             
             session.close()
         except Exception as e:
@@ -310,6 +314,7 @@ def get_all_transaction(*args, **kwargs):
         transaction_list = []
         for l in r_list:
             d_l = {
+                'transaction_time': l.transaction_time,
                 'tx_hash': l.tx_hash,
                 'from_address': l.from_address,
                 'to_address': l.to_address,
@@ -331,3 +336,9 @@ def get_all_transaction(*args, **kwargs):
         }
     else:
         return {"error": check}
+
+
+def search_transaction(hx_hash):
+    data = w3.eth.getTransaction(hx_hash)
+    return data
+

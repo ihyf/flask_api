@@ -125,7 +125,7 @@ url1 = "http://localhost:3000/api"
 url = "http://192.168.1.14:9000/api"
 headers = {"content-type": "application/json"}
 
-
+time1 = time.time()
 payload = {
         "method": "deploy_contract",
         "params": {
@@ -133,10 +133,10 @@ payload = {
             "sign": "",
             "data": """{
                 "contract_name": "luckyNumber",
-                "contract_content": "1",
-                "master_contract_name": "hyf_master_0111",
-                "master_contract_address": "0x486BD2999287B8C3fbD7468368a6e824CF89eB72",
-                "time": 111
+                "url": "http://192.168.1.11:82/upload/luckyNumber.sol",
+                "master_contract_name": "hyf_master_0112",
+                "master_contract_address": "0xf59D133C7dAb2DD494cA5303843ec4E642AC00fD",
+                "time": "1"
             }""",
             "no_decrypt": "no_decrypt"
         },
@@ -159,7 +159,6 @@ ec1.serialization()
 for i in range(1):
     response = requests.post(
         url, data=json.dumps(payload), headers=headers).json()
-print(json.dumps(payload))
 print(response)
 ddata = ec.decrypt(response["result"]["data"])
 print(ddata)

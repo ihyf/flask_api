@@ -144,7 +144,7 @@ def deploy_contract(*args, **kwargs):
     if data is None:
         return {"code": "fail", "error": "no data"}
     data = eval(data)
-    necessary_keys = ["contract_name", "contract_content", "master_contract_name", "url"]
+    necessary_keys = ["contract_name", "master_contract_name", "url"]
     check = check_kv(data, necessary_keys)
     if check == "Success":
         contract_name = data.get("contract_name")
@@ -242,7 +242,7 @@ def add_master_contract(*args, **kwargs):
             f.close()
 
         # 部署合约
-        account = w3.eth.accounts[1]
+        account = w3.eth.accounts[0]
         pay_gas = 1
         contract_address, abi = deploy_n_transact([f'master_contracts/{master_contract_name}_recordAddr.sol'],
                                                   account=account)

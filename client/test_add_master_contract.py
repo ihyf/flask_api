@@ -80,7 +80,7 @@ payload = {
             "appid": "hyf_app",
             "sign": "",
             "data": {
-                "master_contract_name": "hyf_master_0111",
+                "master_contract_name": "hyf_master_0112",
                 "time": time.time()
             }
         },
