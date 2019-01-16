@@ -90,6 +90,9 @@ class DianDian(object):
             "ip": ["192.168.1.0/255.255.255.0", "192.168.1.2", "127.0.0.1", '192.168.1.77'],
             "ns": ["localhost", "127.0.0.1", "192.168.1.77"],
             "srv": [],
+            "master_contract_address": [],
+            "wallet": "wallet address",
+            "callback_url": "callback_url xxxxxxxxxxxx",
             "status": 0,
             "time": time.time()
         }
@@ -181,15 +184,15 @@ class DianDian(object):
 if __name__ == "__main__":
     dd = DianDian()
     # dd.bk_remove()
-    # for i in range(10):
-    #     name = f"appid_bk_inc4_{i}"
-    #     dd.bk_create(appid=name)
+    for i in range(2):
+        name = f"appid_bk_inc8_{i}"
+        dd.bk_create(appid=name)
     # dd.bk_reset()
     # dd.bk_edit()
     # dd.bk_info()
     # dd.bk_status()
     # dd.bk_cleanup()
-    dd.bk_lists()
+    # dd.bk_lists()
 
 
 

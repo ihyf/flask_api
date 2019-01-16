@@ -125,7 +125,7 @@ def send_transaction(*args, **kwargs):
             'gas': gas_limit,
             'gasPrice': w3.toWei(gas_price, 'gwei'),
             'nonce': nonce,
-            'chainId': 1
+            'chainId': 1500
         }
         signed = account.signTransaction(transaction_dict)
         tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)

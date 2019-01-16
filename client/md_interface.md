@@ -1182,6 +1182,162 @@ error
 ```
 
 
+# 钱包后台--获取最新message
+不加密
+---
+URL:{baseurl}/api
+## 上行
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "get_newest_message",
+    "params": {}
+}
+```
+## 下行
+
+```json
+{
+    "result": {
+        "data": [
+            {
+                "id": 47,
+                "msg_name": "第一条消息",
+                "msg_content": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1111",
+                "edit_time": "2019-01-0816: 19: 59"
+            }
+        ]
+    },
+    "id": 1,
+    "jsonrpc": "2.0"
+}
+```
+```
+error
+{"result": {"code": "fail":,"error": "xx error"}, "id": 0, "jsonrpc": "2.0"}
+```
+
+# 钱包后台--获取帮助信息
+不加密
+---
+URL:{baseurl}/api
+## 上行
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "get_newest_help_information",
+    "params": {}
+}
+```
+## 下行
+
+```json
+{
+    "result": {
+        "data": [
+            {
+                "id": 21,
+                "question": "问题",
+                "answer": "回答",
+                "edit_time": "2019-01-1511: 23: 23"
+            }
+        ]
+    },
+    "id": 1,
+    "jsonrpc": "2.0"
+}
+```
+```
+error
+{"result": {"code": "fail":,"error": "xx error"}, "id": 0, "jsonrpc": "2.0"}
+```
+
+# 钱包后台--新增新反馈
+不加密
+---
+URL:{baseurl}/api
+## 上行
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "add_newest_feedback",
+    "params": {
+        "feedback_name": "feedback_name",
+        "feedback_content": "feedback_content"
+    }
+}
+```
+## 下行
+
+```json
+{
+    "result": {
+        "code": "success",
+        "message": "feedback success"
+    },
+    "id": 1,
+    "jsonrpc": "2.0"
+}
+```
+```
+error
+{"result": {"code": "fail":,"error": "xx error"}, "id": 0, "jsonrpc": "2.0"}
+```
+
+# 钱包后台--获取协议
+不加密
+---
+URL:{baseurl}/api
+## 上行
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "get_newest_protocol",
+    "params": {}
+}
+```
+## 下行
+
+```json
+{
+    "result": {
+        "data": [
+            {
+                "id": 4,
+                "protocol_name": "协议名",
+                "protocol_content": "协议内容",
+                "edit_time": "2019-01-15 14:56:19"
+            },
+            {
+                "id": 1,
+                "protocol_name": "协议名",
+                "protocol_content": "协议内容",
+                "edit_time": "2019-01-15 09:47:14"
+            }
+        ]
+    },
+    "id": 1,
+    "jsonrpc": "2.0"
+}
+```
+```
+error
+{"result": {"code": "fail":,"error": "xx error"}, "id": 0, "jsonrpc": "2.0"}
+```
+
+
+
+
+
+
 
 
 

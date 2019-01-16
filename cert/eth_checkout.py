@@ -114,13 +114,15 @@ def delete_checkout_redis(appid):
     # faster_rc = "rfaster_check_{0}".format(appid)
     checkout_update = "checkout_{0}_update".format(appid)
     checkout_mc_address = "checkout_{0}_mcaddress".format(appid)
+    checkout_wallet_addr = "checkout_{0}_waaddress".format(appid)
     redis_store.delete(
         checkout_keys,
         checkout_ns,
         checkout_ip,
         checkout_srv,
         checkout_update,
-        checkout_mc_address
+        checkout_mc_address,
+        checkout_wallet_addr,
     )
 
 
@@ -131,12 +133,14 @@ def get_keys(appid):
     checkout_srv = "checkout_{0}_srv".format(appid)
     checkout_update = "checkout_{0}_update".format(appid)
     checkout_mc_address = "checkout_{0}_mcaddress".format(appid)
+    checkout_wallet_addr = "checkout_{0}_waaddress".format(appid)
     res_kes = {
         "keys": None,
         "ns": None,
         "ip": None,
         "srv": None,
         "master_contract_address": None,
+        "wallet": None,
     }
     if redis_store.exists(checkout_keys) == 0:
         session = db_manager.slave()
@@ -173,6 +177,7 @@ def get_keys(appid):
         res_kes["ip"] = app.ip
         res_kes["srv"] = app.srv
         res_kes["master_contract_address"] = app.master_contract_address
+        res_kes["wallet"] = app.wallet
         if res_kes["ns"]:
             redis_store.rpush(checkout_ns, *res_kes["ns"])
         if res_kes["ip"]:
@@ -181,6 +186,8 @@ def get_keys(appid):
             redis_store.rpush(checkout_srv, *res_kes["srv"])
         if res_kes["master_contract_address"]:
             redis_store.rpush(checkout_mc_address, *res_kes["master_contract_address"])
+        if res_kes["wallet"]:
+            redis_store.set(checkout_wallet_addr, res_kes["wallet"])
         redis_store.set(checkout_update, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     else:
         res_kes["keys"] = redis_store.lrange(checkout_keys, 0, 3)
@@ -188,6 +195,7 @@ def get_keys(appid):
         res_kes["ip"] = redis_store.lrange(checkout_ip, 0, -1)
         res_kes["srv"] = redis_store.lrange(checkout_srv, 0, -1)
         res_kes["master_contract_address"] = redis_store.lrange(checkout_mc_address, 0, -1)
+        res_kes["wallet"] = redis_store.get(checkout_wallet_addr)
     return True, res_kes
 
 

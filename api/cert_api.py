@@ -51,6 +51,10 @@ def bk_create(*args, **kwargs):
     master_contract_address = origin.get("master_contract_address", [])
     if not isinstance(master_contract_address, list):
         return {"code": "fail", "error": "master_contract_address filed error"}
+    wallet = origin.get("wallet", None)
+    if wallet is None:
+        return {"code": "fail", "error": "wallet filed error"}
+    callback_url = origin.get("callback_url", None)
     status = origin.get("status")
     if not isinstance(status, int):
         return {"code": "fail", "error": "status filed error"}
@@ -113,6 +117,8 @@ def bk_create(*args, **kwargs):
         srv_privatekey=srv_privatekey,
         srv=srv,
         master_contract_address=master_contract_address,
+        wallet=wallet,
+        callback_url=callback_url,
         status=status
     )
     session.add(app)
@@ -192,6 +198,10 @@ def bk_edit(*args, **kwargs):
         app.ns = origin['ns']
     if 'master_contract_address' in origin and isinstance(origin['master_contract_address'], list):
         app.master_contract_address = origin['master_contract_address']
+    if 'wallet' in origin:
+        app.wallet = origin['wallet']
+    if 'callback_url' in origin:
+        app.callback_url = origin['callback_url']
     ec = EthCert()
     if 'cli_publickey' in origin and origin['cli_publickey']:
         ec.init_key(public_key_str=origin['cli_publickey'])

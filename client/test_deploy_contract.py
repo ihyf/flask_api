@@ -150,7 +150,7 @@ ec.load_key_from_file()
 ec.serialization()
 sign = ec.sign(payload["params"]["data"])
 payload["params"]["sign"] = sign.decode()
-
+"0x30A2251D987813D818E7657Df5236E367591dc39"
 ec1 = EthCert("syncapp")
 ec1.load_key_from_file()
 ec1.serialization()

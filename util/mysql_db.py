@@ -38,6 +38,8 @@ class Apps(Base):
     srv_privatekey = Column(Text, nullable=False)
     srv = Column(JSON, nullable=False)
     master_contract_address = Column(JSON, nullable=False, default=[])
+    wallet = Column(String(200), nullable=False, default="no set")
+    callback_url = Column(String(250), nullable=True)
     status = Column(Integer, nullable=False)
 
 
