@@ -26,15 +26,15 @@ def separate_main_n_link(file_path, contracts):
 
 def deploy_contract(contract_interface, account):
     account = w3.toChecksumAddress(account)
-
+    w3.eth.defaultAccount = w3.eth.accounts[0]
     # Instantiate and deploy contract
     contract = w3.eth.contract(
         abi=contract_interface['abi'], bytecode=contract_interface['bin'])
     # Get transaction hash from deployed contract
-    tx_hash = contract.deploy(transaction={'from': account})
+    tx_hash = contract.constructor().transact()
     # Get tx receipt to get contract address
-    tx_receipt = w3.eth.getTransactionReceipt(tx_hash)
-    return tx_receipt['contractAddress'], tx_hash.hex()
+    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+    return tx_receipt['contractAddress'], tx_hash.hex(), tx_receipt
 
 
 def deploy_n_transact(file_path, mappings=[], account=w3.eth.accounts[0]):

@@ -37,18 +37,17 @@ def transfer_contract(*args, **kwargs):
         account = w3.toChecksumAddress(account)
 
         if "get" not in func_name and "set" not in func_name:
-            tx_hash = eval("contract_instance.functions.{func_name}({func_param})."
-                           "transact({{'from': '{account}', 'value': w3.toWei({value}, 'ether')}})".
-                           format(func_name=func_name,
-                                  func_param=func_param, account=account, value=value))
+            tx_hash = eval(f"contract_instance.functions.{func_name}({func_param})."
+                           "transact({{'from': '{account}', 'value': w3.toWei({value}, 'ether')}})."
+                           "buildTransaction({{'chainId': 1500, 'gas': 7000, 'gasPrice': w3.toWei('0.01', 'ether'), 'nonce': {nonce}}}")
             w3.eth.waitForTransactionReceipt(tx_hash)
 
             result = {"data": "{} ok".format(func_name)}
         elif "set" in func_name:
-            tx_hash = eval("contract_instance.functions.{func_name}({func_param})."
-                           "transact({{'from': '{account}', 'value': w3.toWei(0, 'ether')}})".
-                           format(func_name=func_name,
-                                  func_param=func_param, account=account))
+            tx_hash = eval(f"contract_instance.functions.{func_name}({func_param})."
+                           "transact({{'from': '{account}', 'value': w3.toWei(0, 'ether')}})."
+                           "buildTransaction({{'chainId': 1500, 'gas': 7000, 'gasPrice': w3.toWei('0.01', 'ether'), 'nonce': {nonce}}}")
+
             w3.eth.waitForTransactionReceipt(tx_hash)
 
             result = {"data": "set {} ok".format(func_name)}
@@ -160,9 +159,10 @@ def deploy_contract(*args, **kwargs):
 
         # 部署合约
         account = w3.eth.accounts[0]
-        pay_gas = 1
         contract_address, abi = deploy_n_transact([f'contracts/{contract_name}.sol'], account=account)
         tx_hash = contract_address[1]
+        tx_receipt = contract_address[2]
+        pay_gas = tx_receipt.get("gasUsed", "0")
         with open(f'json_files/data_{contract_name}.json', 'w') as outfile:
             json_data = {
                 "abi": abi,
@@ -243,10 +243,11 @@ def add_master_contract(*args, **kwargs):
 
         # 部署合约
         account = w3.eth.accounts[0]
-        pay_gas = 1
         contract_address, abi = deploy_n_transact([f'master_contracts/{master_contract_name}_recordAddr.sol'],
                                                   account=account)
         tx_hash = contract_address[1]
+        tx_receipt = contract_address[2]
+        pay_gas = tx_receipt.get("gasUsed", "0")
         with open(f'master_contracts/master_contracts_json/{master_contract_name}_recordAddr.json', 'w') as outfile:
             data = {
                 "abi": abi,
