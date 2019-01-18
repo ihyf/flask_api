@@ -134,8 +134,8 @@ payload = {
             "data": """{
                 "contract_name": "luckyNumber",
                 "url": "http://192.168.1.11:82/upload/luckyNumber.sol",
-                "master_contract_name": "hyf_master_0112",
-                "master_contract_address": "0xf59D133C7dAb2DD494cA5303843ec4E642AC00fD",
+                "master_contract_name": "hyf_master_0118",
+                "master_contract_address": "0xeb2f06209636783f5509920Cb86B39Cb2c16fa86",
                 "time": "1"
             }""",
             "no_decrypt": "no_decrypt"

@@ -37,10 +37,10 @@ Private Keys
 a8 = "0x57e82bbbd0c74f3ac30a9a113bbb6ce01b73cd63"
 a9 = "0x7c8f12a654d8f076a39b98aa91c1bcf27de65ff6"
 a7 = "0x2b693894a85adaaefadac4c3f88656c834c3eb44"
-a6 = "0x607ec8da785357220474c8660ce44b7f711822fc"
+a6 = "0x6b9f89be707fe4eb772f9f37e47bbba4089b56fc"
 
 
-a1 = "0xadf7062978ecb215e4326e821d8ea0b4d34bbcbf"
+a0 = "0xb5143167d9873699ec2ba75917c4661e5f8ab04d"
 "betting" "getRandom" "result"
 
 "transfer_contract" "getNumPlayerArr"  "setChooseGame" "tBetting" "tResult" "getGameNum"
@@ -50,11 +50,11 @@ payload = {
             "appid": "hyf_app",
             "sign": "",
             "data": {
-                "account": a1,
-                "contract_name": "hyf_master_02_slave_01",
-                "func_name": "getGameNum",
-                "func_param": "",
-                "value": 0,
+                "account": a6,
+                "contract_name": "luckyNumber",
+                "func_name": "tBetting",
+                "func_param": "1",
+                "value": 2,
                 "time": time.time()
             }
         },

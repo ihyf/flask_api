@@ -152,7 +152,6 @@ def deploy_contract(*args, **kwargs):
         # url = config.contract_url+contract_name+".sol"
         response = requests.get(url)
         contract_content = response.content.decode()
-        print(response.content)
         with open(f"contracts/{contract_name}.sol", "w", encoding="utf-8") as f:
             f.write(contract_content)
             f.close()
