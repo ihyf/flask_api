@@ -159,7 +159,7 @@ def deploy_contract(*args, **kwargs):
             f.close()
 
         # 部署合约
-        account = w3.eth.accounts[1]
+        account = w3.eth.accounts[0]
         pay_gas = 1
         contract_address, abi = deploy_n_transact([f'contracts/{contract_name}.sol'], account=account)
         tx_hash = contract_address[1]

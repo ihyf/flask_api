@@ -21,18 +21,18 @@ def create_account(*args, **kwargs):
     data = kwargs['decrypt']
     pwd = data.get("pwd", None)
     if pwd:
-        m = Mnemonic('english')
-        mnemonic = m.generate()
-        private_key = mnemonic_to_private_key(mnemonic)
-        account = w3.eth.account.privateKeyToAccount(private_key)
-        address = account.address
-        wallet = Account.encrypt(private_key, pwd)
+        # m = Mnemonic('english')
+        # mnemonic = m.generate()
+        # private_key = mnemonic_to_private_key(mnemonic)
+        # account = w3.eth.account.privateKeyToAccount(private_key)
+        # address = account.address
+        # wallet = Account.encrypt(private_key, pwd)
         # old version
-        # account = Account.create()
-        # private_key = account._key_obj
-        # public_key = private_key.public_key
-        # address = public_key.to_checksum_address()
-        # wallet = Account.encrypt(account.privateKey, pwd)
+        account = Account.create()
+        private_key = account._key_obj
+        public_key = private_key.public_key
+        address = public_key.to_checksum_address()
+        wallet = Account.encrypt(account.privateKey, pwd)
         
         # 插入数据库
         create_time = time.strftime("%Y-%m-%d %X", time.localtime())
@@ -43,11 +43,17 @@ def create_account(*args, **kwargs):
         session.commit()
         session.close()
         
+        # result = {
+        #     "mnemonic": mnemonic,
+        #     "address": address,
+        #     "keystore": wallet,
+        #     "private_key": private_key.hex()
+        # }
         result = {
-            "mnemonic": mnemonic,
+            "mnemonic": "",
             "address": address,
             "keystore": wallet,
-            "private_key": private_key.hex()
+            "private_key": str(private_key)
         }
         ec_cli = kwargs['ec_cli']
         ec_srv = kwargs['ec_srv']
@@ -75,6 +81,7 @@ def get_balance(*args, **kwargs):
     if address_list:
         address_list = eval(address_list)
         for address in address_list:
+            address = w3.toChecksumAddress(address)
             eth_balance = w3.fromWei(w3.eth.getBalance(address, 'latest'), 'ether')
             eth_balance = str(eth_balance)
             d = {
