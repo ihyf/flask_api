@@ -506,3 +506,9 @@ def add_app(*args, **kwargs):
     session.commit()
     session.close()
     return "add app ok"
+
+
+@api_add
+def test_liujin(*args, **kwargs):
+    print(kwargs)
+    return {"data": "liujin zhenshuai"}

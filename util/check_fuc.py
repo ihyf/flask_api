@@ -29,3 +29,10 @@ def to_byte32(s):
 
 def bytes_str_to_dict(b):
     return eval(str(b, encoding="utf-8"))
+
+
+def get_srv_time():
+    """获取服务器当前时间，并格式化成字符串"""
+    import datetime
+    t = (datetime.datetime.now()+datetime.timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
+    return t

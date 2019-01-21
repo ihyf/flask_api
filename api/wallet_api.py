@@ -12,6 +12,9 @@ from util.mnemonic_utils import mnemonic_to_private_key
 from cert.eth_checkout import check_conn
 from util.mysql_db import db_manager, Accounts, TransactionRecord
 from sqlalchemy import and_,or_
+from util.async_tools import wait_transactio_confirm
+import asyncio
+from util.check_fuc import get_srv_time
 
 
 @api_add
@@ -79,7 +82,7 @@ def get_balance(*args, **kwargs):
     address_list = data.get("address", None)
     L = []
     if address_list:
-        address_list = eval(address_list)
+        # address_list = eval(address_list)
         for address in address_list:
             address = w3.toChecksumAddress(address)
             eth_balance = w3.fromWei(w3.eth.getBalance(address, 'latest'), 'ether')
@@ -122,7 +125,13 @@ def send_transaction(*args, **kwargs):
         keystore = data.get("keystore", None)
         gas_limit = data.get("gas_limit", None)
         gas_price = data.get("gas_price", None)
-        private_key = Account.decrypt(json.dumps(keystore), pwd)
+        gas_price = 30
+        gas_limit = 200000
+        try:
+            private_key = Account.decrypt(json.dumps(keystore), pwd)
+        except Exception as e:
+            print(e)
+            return {"code": "fail", "error": "pwd error"}
         account = Account.privateKeyToAccount(private_key)
         from_address = account.address
         nonce = w3.eth.getTransactionCount(account.address)
@@ -136,10 +145,19 @@ def send_transaction(*args, **kwargs):
         }
         signed = account.signTransaction(transaction_dict)
         tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
-        receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+        # #
+        # loop = asyncio.new_event_loop()
+        # asyncio.set_event_loop(loop)
+        # tasks = [wait_transactio_confirm(tx_hash)]
+        # results = loop.run_until_complete(asyncio.wait(*tasks))
+        # #
+        # receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+        receipt = 1
         if receipt:
             # 插入数据库
-            transaction_time = time.strftime("%Y-%m-%d %X", time.localtime())
+            # transaction_time = time.strftime("%Y-%m-%d %X", time.localtime())
+            # 服务器时间 + 8 hour
+            transaction_time = get_srv_time()
             session = db_manager.master()
             try:
                 new_tr = TransactionRecord(from_address=from_address, to_address=to_address,
@@ -313,8 +331,7 @@ def get_all_transaction(*args, **kwargs):
             r_list = session.query(TransactionRecord).\
                 filter(or_(TransactionRecord.from_address == address,
                            TransactionRecord.to_address == address)).\
-                order_by(-TransactionRecord.transaction_time)[page*limit:(page+1)*limit]
-            
+                order_by(-TransactionRecord.id)[page*limit:(page+1)*limit]
             session.close()
         except Exception as e:
             return {"code": "fail", "error": f"{e}"}
@@ -345,7 +362,14 @@ def get_all_transaction(*args, **kwargs):
         return {"error": check}
 
 
-def search_transaction(hx_hash):
-    data = w3.eth.getTransaction(hx_hash)
-    return data
+@api_add
+def search_transaction(*args, **kwargs):
+    necessary_keys = ["hx_hash"]
+    check = check_kv(kwargs, necessary_keys)
+    if check == "Success":
+        hx_hash = kwargs.get("hx_hash", None)
+        data = w3.eth.getTransaction(hx_hash)
+        return data
+    else:
+        return {"code": "fail", "error": check}
 

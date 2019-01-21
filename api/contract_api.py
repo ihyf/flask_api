@@ -3,16 +3,18 @@ import json
 import os
 import logging
 import time
+import requests
+import config
 from flask import request
 from cert.eth_checkout import check_conn
 from my_dispatcher import api_add, api
 from util.compile_solidity_utils import w3
-from util.check_fuc import check_kv
+from util.check_fuc import check_kv, get_srv_time
 from util.compile_solidity_utils import deploy_n_transact
 from util.mysql_db import db_manager, DeployContracts, ContractOp
 from util.dbmanager import db_manager
-import requests
-import config
+from eth_account import Account
+from urllib import parse
 
 
 @api_add
@@ -28,26 +30,31 @@ def transfer_contract(*args, **kwargs):
         func_name = data.get("func_name", None)
         func_param = data.get("func_param", None)
         value = data.get("value", None)
-        
+        keystore = data.get("keystore", None)
+        pwd = data.get("pwd", None)
+
         with open("json_files/data_{}.json".format(contract_name), 'r') as f:
             datastore = json.load(f)
         abi = datastore["abi"]
         contract_address = datastore["contract_address"]
         contract_instance = w3.eth.contract(address=contract_address, abi=abi)
         account = w3.toChecksumAddress(account)
+        nonce = w3.eth.getTransactionCount(account)
+        private_key = Account.decrypt(json.dumps(keystore), pwd)
+        account_instance = Account.privateKeyToAccount(private_key)
 
         if "get" not in func_name and "set" not in func_name:
-            tx_hash = eval(f"contract_instance.functions.{func_name}({func_param})."
-                           "transact({{'from': '{account}', 'value': w3.toWei({value}, 'ether')}})."
-                           "buildTransaction({{'chainId': 1500, 'gas': 7000, 'gasPrice': w3.toWei('0.01', 'ether'), 'nonce': {nonce}}}")
+            ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 200000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+            t_dict = eval(ss1)
+            print(t_dict)
+            signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
+            tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
             w3.eth.waitForTransactionReceipt(tx_hash)
-
+            
             result = {"data": "{} ok".format(func_name)}
         elif "set" in func_name:
-            tx_hash = eval(f"contract_instance.functions.{func_name}({func_param})."
-                           "transact({{'from': '{account}', 'value': w3.toWei(0, 'ether')}})."
-                           "buildTransaction({{'chainId': 1500, 'gas': 7000, 'gasPrice': w3.toWei('0.01', 'ether'), 'nonce': {nonce}}}")
-
+            s = f"""contract_instance.functions.{func_name}({func_param}).transact({{'from': '{account}', 'value': w3.toWei({value}, 'ether')}})"""
+            tx_hash = eval(s)
             w3.eth.waitForTransactionReceipt(tx_hash)
 
             result = {"data": "set {} ok".format(func_name)}
@@ -65,7 +72,8 @@ def transfer_contract(*args, **kwargs):
                 "func_param": func_param,
                 "value": value
             }
-            op_time = time.strftime("%Y-%m-%d %X", time.localtime())
+            # op_time = time.strftime("%Y-%m-%d %X", time.localtime())
+            op_time = get_srv_time()
             if tx_hash:
                 tx_hash = tx_hash.hex()
             else:
@@ -142,14 +150,13 @@ def deploy_contract(*args, **kwargs):
     data = kwargs.get("data", None)
     if data is None:
         return {"code": "fail", "error": "no data"}
-    data = eval(data)
     necessary_keys = ["contract_name", "master_contract_name", "url"]
     check = check_kv(data, necessary_keys)
     if check == "Success":
         contract_name = data.get("contract_name")
         url = data.get("url")
+        url = parse.unquote(url, encoding="utf-8")
         # 获取子合约
-        # url = config.contract_url+contract_name+".sol"
         response = requests.get(url)
         contract_content = response.content.decode()
         with open(f"contracts/{contract_name}.sol", "w", encoding="utf-8") as f:
@@ -185,7 +192,7 @@ def deploy_contract(*args, **kwargs):
         # 插入数据库
         try:
             session = db_manager.master()
-            deploy_time = time.strftime("%Y-%m-%d %X", time.localtime())
+            deploy_time = get_srv_time()
             new_dc = DeployContracts(contract_name=contract_name, address=account, tx_hash=tx_hash,
                                      deploy_time=deploy_time, pay_gas=pay_gas, contract_address=contract_address[0])
             session.add(new_dc)
@@ -255,7 +262,7 @@ def add_master_contract(*args, **kwargs):
             json.dump(data, outfile, indent=4, sort_keys=True)
 
         session = db_manager.master()
-        deploy_time = time.strftime("%Y-%m-%d %X", time.localtime())
+        deploy_time = get_srv_time()
         new_dc = DeployContracts(contract_name=master_contract_name, address=account, tx_hash=tx_hash,
                                  deploy_time=deploy_time, pay_gas=pay_gas, contract_address=contract_address[0],
                                  master_mark="master")

@@ -5,6 +5,8 @@ import time
 s = "hyf"
 from util.check_fuc import to_byte32
 # s = to_byte32("hyf")
+keystore = {"address": "6b9f89be707fe4eb772f9f37e47bbba4089b56fc", "crypto": {"cipher": "aes-128-ctr", "cipherparams": {"iv": "fe29e948049e1788af34aa568b0d913d"}, "ciphertext": "2b5803ae915b94861a7308c42ae178e1a8976af529f262169d1c94dc88b8f7be", "kdf": "pbkdf2", "kdfparams": {"c": 1000000, "dklen": 32, "prf": "hmac-sha256", "salt": "527ca4bb50731d15da25f3ca945831f6"}, "mac": "f18be87ed64d2007fb2d5bc1b2fe17adfa46a5326ce4f48abc2e7cd940dfe1fb"}, "id": "c685e48f-bd70-47ce-b58f-0facb8f98919", "version": 3}
+pwd = "hyf"
 """
 Available Accounts
 ==================
@@ -55,6 +57,8 @@ payload = {
                 "func_name": "tBetting",
                 "func_param": "1",
                 "value": 2,
+                "keystore": keystore,
+                "pwd": pwd,
                 "time": time.time()
             }
         },

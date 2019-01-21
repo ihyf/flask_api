@@ -118,7 +118,7 @@ class EthCert(object):
         if isinstance(origin_str, str):
             return bytes(origin_str, encoding='utf8')
         if isinstance(origin_str, (list, dict)):
-            return bytes(json.dumps(origin_str, ensure_ascii=False), encoding='utf8')
+            return bytes(json.dumps(origin_str, ensure_ascii=False, separators=(',', ':')), encoding='utf8')
         else:
             return bytes(str(origin_str), encoding='utf8')
 
@@ -239,7 +239,7 @@ class EthCert(object):
             return False
         encrypt_length = int(self.public_key.key_size / 8 - 11)
         bytes_data = self.convert(origin_data)
-        bytes_len = len(origin_data)
+        bytes_len = len(bytes_data)
         offset = 0
         en_res = []
         while bytes_len - offset > 0:
