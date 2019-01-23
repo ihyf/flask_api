@@ -1190,28 +1190,39 @@ URL:{baseurl}/api
 
 ```json
 {
-    "jsonrpc": "2.0",
-    "id": 1,
-    "method": "get_newest_message",
-    "params": {}
+	"jsonrpc": "2.0",
+	"id": 1,
+	"method": "get_newest_message",
+	"params": {
+		"page": "1",
+		"limit": "10"
+	}
 }
 ```
 ## 下行
 
 ```json
 {
-    "result": {
-        "data": [
-            {
-                "id": 47,
-                "msg_name": "第一条消息",
-                "msg_content": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1111",
-                "edit_time": "2019-01-0816: 19: 59"
-            }
-        ]
-    },
-    "id": 1,
-    "jsonrpc": "2.0"
+	"result": {
+		"data": [{
+			"id": 50,
+			"msg_name": "1",
+			"msg_content": "111",
+			"edit_time": "2019-01-15 16:16:29"
+		}, {
+			"id": 49,
+			"msg_name": "11",
+			"msg_content": "1",
+			"edit_time": "2019-01-15 16:04:54"
+		}, {
+			"id": 48,
+			"msg_name": "1",
+			"msg_content": "1",
+			"edit_time": "2019-01-09 16:01:18"
+		}]
+	},
+	"id": 1,
+	"jsonrpc": "2.0"
 }
 ```
 ```
@@ -1227,28 +1238,35 @@ URL:{baseurl}/api
 
 ```json
 {
-    "jsonrpc": "2.0",
-    "id": 1,
-    "method": "get_newest_help_information",
-    "params": {}
+	"jsonrpc": "2.0",
+	"id": 1,
+	"method": "get_newest_help_information",
+	"params": {
+		"page": "1",
+		"limit": "10"
+	}
 }
+
 ```
 ## 下行
 
 ```json
 {
-    "result": {
-        "data": [
-            {
-                "id": 21,
-                "question": "问题",
-                "answer": "回答",
-                "edit_time": "2019-01-1511: 23: 23"
-            }
-        ]
-    },
-    "id": 1,
-    "jsonrpc": "2.0"
+	"result": {
+		"data": [{
+			"id": 16,
+			"question": "2",
+			"answer": "2",
+			"edit_time": "2019-01-15 11:21:11"
+		}, {
+			"id": 15,
+			"question": "2",
+			"answer": "2",
+			"edit_time": "2019-01-15 11:21:08"
+		}]
+	},
+	"id": 1,
+	"jsonrpc": "2.0"
 }
 ```
 ```

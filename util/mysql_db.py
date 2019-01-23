@@ -66,11 +66,12 @@ class TransactionRecord(Base):
 class DeployContracts(Base):
     __tablename__ = "deploy_contracts"
     id = Column(Integer, autoincrement=True, primary_key=True)
-    contract_name = Column(String(200), primary_key=True)
-    address = Column(String(200))
-    tx_hash = Column(String(100))
+    master_contract_name = Column(String(200), primary_key=True)
+    deploy_account = Column(String(200))
+    deploy_tx_hash = Column(String(100))
     deploy_time = Column(String(20))
     pay_gas = Column(String(20))
+    master_contract_address = Column(String(100))
     contract_address = Column(String(100))
     master_mark = Column(String(20))
     # service_id = Column(Integer, ForeignKey('deploy_contracts.id'), nullable=True)
@@ -100,6 +101,7 @@ class Tokens(Base):
     
 
 class ContractOp(Base):
+    # 合约调用表
     __tablename__ = "contract_op_table"
     op_id = Column(Integer, autoincrement=True, primary_key=True)
     contract_name = Column(String(200), primary_key=True)
@@ -107,6 +109,8 @@ class ContractOp(Base):
     op_info = Column(PickleType)
     op_time = Column(String(20))
     tx_hash = Column(String(100))
+    order_id = Column(String(100))
+    type = Column(Integer, default=0)  # 2为无需支付 1为已支付 0为初始态 -1为失效
     
     
 def create_tables():

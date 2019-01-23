@@ -22,7 +22,8 @@ from urllib import parse
 def transfer_contract(*args, **kwargs):
     # 调用合约公共接口
     data = kwargs['decrypt']
-    necessary_keys = ["account", "contract_name", "func_name"]
+    necessary_keys = ["account", "contract_name", "func_name",
+                      "func_param", "value", "keystore", "pwd"]
     check = check_kv(data, necessary_keys)
     if check == "Success":
         account = data.get("account", None)
@@ -52,19 +53,21 @@ def transfer_contract(*args, **kwargs):
             w3.eth.waitForTransactionReceipt(tx_hash)
             
             result = {"data": "{} ok".format(func_name)}
+            type = 1
         elif "set" in func_name:
             s = f"""contract_instance.functions.{func_name}({func_param}).transact({{'from': '{account}', 'value': w3.toWei({value}, 'ether')}})"""
             tx_hash = eval(s)
             w3.eth.waitForTransactionReceipt(tx_hash)
 
             result = {"data": "set {} ok".format(func_name)}
-
+            type = 1
         elif "get" in func_name:
             result = eval("contract_instance.functions.{func_name}({func_param}).call()".
                           format(func_name=func_name, func_param=func_param))
             tx_hash = ""
+            type = 2
 
-        # 插入数据库 预留
+        # 插入数据库
         try:
             session = db_manager.master()
             op_info = {
@@ -79,7 +82,7 @@ def transfer_contract(*args, **kwargs):
             else:
                 tx_hash = "无"
             op = ContractOp(contract_name=contract_name, contract_address=contract_address,
-                            op_info=op_info, op_time=op_time, tx_hash=tx_hash)
+                            op_info=op_info, op_time=op_time, tx_hash=tx_hash, type=type)
             session.add(op)
             session.commit()
             session.close()
@@ -263,9 +266,9 @@ def add_master_contract(*args, **kwargs):
 
         session = db_manager.master()
         deploy_time = get_srv_time()
-        new_dc = DeployContracts(contract_name=master_contract_name, address=account, tx_hash=tx_hash,
-                                 deploy_time=deploy_time, pay_gas=pay_gas, contract_address=contract_address[0],
-                                 master_mark="master")
+        new_dc = DeployContracts(master_contract_name=master_contract_name, deploy_account=account, deploy_tx_hash=tx_hash,
+                                 deploy_time=deploy_time, pay_gas=pay_gas, master_contract_address=contract_address[0],
+                                 master_mark="master", contract_address="")
         
         session.add(new_dc)
         session.commit()
@@ -287,5 +290,59 @@ def add_master_contract(*args, **kwargs):
             "data": d
         }
         return {"data": "ok"}
+    else:
+        return {"code": "fail", "error": check}
+    
+
+@api_add
+@check_conn(request)
+def transfer_nopay_op(*args, **kwargs):
+    # 未支付的合约调用订单
+    data = kwargs['decrypt']
+    necessary_keys = ["account", "contract_name", "func_name",
+                      "func_param", "value", "keystore", "pwd"]
+    check = check_kv(data, necessary_keys)
+    if check == "Success":
+        func_name = data.get("func_name")
+        func_param = data.get("func_param")
+        value = data.get("value")
+        func_name = data.get("func_name")
+        
+        try:
+            session = db_manager.master()
+            op_info = {
+                "func_name": func_name,
+                "func_param": func_param,
+                "value": value
+            }
+            # op_time = time.strftime("%Y-%m-%d %X", time.localtime())
+            op_time = get_srv_time()
+            if tx_hash:
+                tx_hash = tx_hash.hex()
+            else:
+                tx_hash = "无"
+            op = ContractOp(contract_name=contract_name, contract_address=contract_address,
+                            op_info=op_info, op_time=op_time, tx_hash=tx_hash, type=type)
+            session.add(op)
+            session.commit()
+            session.close()
+        except Exception as e:
+            return {
+                "code": "fail",
+                "error": f"{e}"
+            }
+    
+        result = {"data": result}
+        ec_cli = kwargs['ec_cli']
+        ec_srv = kwargs['ec_srv']
+        sign = ec_srv.sign(result).decode()
+        result = ec_cli.encrypt(result).decode()
+    
+        return {
+            "code": "success",
+            "sign": sign,
+            "data": result
+        }
+    
     else:
         return {"code": "fail", "error": check}

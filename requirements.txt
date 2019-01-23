@@ -50,10 +50,8 @@ py-solc==3.2.0
 pycparser==2.19
 pycryptodome==3.7.0
 PyMySQL==0.9.3
-pypiwin32==223
 python-dateutil==2.7.5
 python-editor==1.0.3
-pywin32==224
 redis==3.0.1
 requests==2.21.0
 rlp==1.0.3

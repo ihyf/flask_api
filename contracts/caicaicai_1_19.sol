@@ -1,11 +1,4 @@
-# coding:utf-8
-import requests
-import json
-import time
-from cert.eth_certs import EthCert
-from urllib import parse
-
-sss = """pragma solidity ^0.4.0;
+pragma solidity ^0.4.0;
 
 contract luckyNumber{
     
@@ -71,7 +64,7 @@ contract luckyNumber{
         }else{
             for(uint j=0;j<numPlayer[result].length;j++){
                 numPlayer[result][j].transfer(bonusMoney/numPlayer[result].length);
-            }
+            } 
         }
         owner.transfer(myMoney);
         for(uint32 k=0;k<totalPlayerNum;k++){
@@ -118,48 +111,5 @@ contract luckyNumber{
     }
     // function getOnePlayerAddr()view public returns(address){
     //     return betPlayerAddress[1];
-    // }
+    // } 
 }
-"""
-
-url1 = "http://localhost:3000/api"
-url = "http://192.168.1.14:9000/api"
-headers = {"content-type": "application/json"}
-
-time1 = time.time()
-payload = {
-        "method": "deploy_contract",
-        "params": {
-            "appid": "syncapp",
-            "sign": "",
-            "data": {
-                "contract_name": "luckyNumber",
-                "url": parse.quote("http://192.168.1.11:82/upload/luckyNumber.sol"),
-                "master_contract_name": "hyf_master_0121",
-                "master_contract_address": "0x7EE4Ac8386E86779Ce6E89a699C4B1e57B1Cc121",
-                "time": time.time()
-            },
-            "no_decrypt": "no_decrypt"
-        },
-        "jsonrpc": "2.0",
-        "id": 0
-    }
-
-
-ec = EthCert("syncapp")
-ec.load_key_from_file()
-ec.serialization()
-sign = ec.sign(payload["params"]["data"])
-payload["params"]["sign"] = sign.decode()
-"0x30A2251D987813D818E7657Df5236E367591dc39"
-ec1 = EthCert("syncapp")
-ec1.load_key_from_file()
-ec1.serialization()
-# payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
-
-for i in range(1):
-    response = requests.post(
-        url, data=json.dumps(payload), headers=headers).json()
-print(response)
-ddata = ec.decrypt(response["result"]["data"])
-print(ddata)

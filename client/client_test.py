@@ -12,8 +12,9 @@ import urllib3
 """
 def main():
     geth_url = "http://192.168.1.33:8101"
-    url1 = "http://localhost:9000/api"
-    url = "http://192.168.1.14:9000/api"
+    url = "http://localhost:9000/api"
+    url1 = "http://192.168.1.14:9000/api"
+    url_waiwang = "http://192.168.1.14:9000/api"
     headers = {"content-type": "application/json"}
     
     keystore_node1 = {"address":"b5143167d9873699ec2ba75917c4661e5f8ab04d","crypto":{"cipher":"aes-128-ctr","ciphertext":"d817054e98aeb13f891d21995860a69b8312be6609b26e7d09110333196e1910","cipherparams":{"iv":"a886543aaa99095f1c5f80c4b204c68b"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"8f3b652fcb14f5f3e87847d3860e1da3dbb06ed03b36b0a35143eb954f5967c0"},"mac":"d386dbeee949ab658c9409c645baecf94fc153593cef82b6d93fafbcc4d5efc6"},"id":"578e661b-5ddd-4da9-be77-9df6e406d11e","version":3}
@@ -41,6 +42,7 @@ def main():
 }
     keystore4 = {'address': 'f323f1903fcd008206bba9d905bdeacd61f498e7', 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': '6c3bd1f44b67c8a6387c0650801b73c3'}, 'ciphertext': 'e52f85af32f9cbf3d02cc44c616bf4be30df380a92ee968ce0a103fe6aaebd86', 'kdf': 'pbkdf2', 'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256', 'salt': '36a478ce205ea8108cf10879e418f519'}, 'mac': '4883a52cf8f39733e2777e747f3d6632eef2419714a7498ed9e3f82cf6e36291'}, 'id': 'a61dd6a0-2dcd-46c4-b8b4-f21b97aba326', 'version': 3}
     keystore_hyf = {"address":"e05c112ca739671f014efc2e684b9ac96865d459","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"277c5a4cd33901350007c9c87670f293"},"ciphertext":"dd44c7257cb33b572827ef7e2c5cebb3bba538760a9b68d1ec34de00a45665c3","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"72a6ec62856d92f09a4510751dc19140"},"mac":"55c3f7be7cfd9d52f2bb37d9dda1356f7d252e08d4d809eb9cdf22f37c1e3318"},"id":"74b8a9b8-49c8-4b01-ae73-ac0a83a83c7e","version":3}
+    keystore_poa_node1 = {"address":"3ff83cc121adae7953cc96c8fab1463c2756d4d6","crypto":{"cipher":"aes-128-ctr","ciphertext":"9159d08b6b72b26cb9aa0eb22776ad73f12444d1c333f1b77a6350497fbcf486","cipherparams":{"iv":"d073e228b007782f029f2f229c585ddc"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"5e1146850019085d042a7b660d6f6e99266e35d797a5e55d7402c263f4b96c9f"},"mac":"4301617ced915e9a22b5f93b937d8a61f4113a34615feb681cdb0f8a8db87b51"},"id":"e82ce4db-c07a-4959-8c8c-a0e17fd0d6ab","version":3}
     # payload = {
     #     "method": "create_account",
     #     "params": {
@@ -62,12 +64,12 @@ def main():
             "appid": "hyf_app",
             "sign": "",
             "data": {
-                "to_address": "0xe05c112ca739671f014efc2e684b9ac96865d459",
-                "value": 1000,
+                "to_address": "0x3281bD613CeAB444cfa36720552C65F6eC801Bc8",
+                "value": 10,
                 "gas_limit": 40000,
                 "gas_price": gas_price,
-                "pwd": "hyf",
-                "keystore": keystore_hyf,
+                "pwd": "123456",
+                "keystore": keystore_poa_node1,
                 "time": time.time()
             }
         },
@@ -104,21 +106,21 @@ def main():
 #     "jsonrpc": "2.0",
 #     "id": ""
 # }
-#     payload = {
-#         "method": "get_balance",
-#         "params": {
-#             "appid": "hyf_app",
-#             "sign": "",
-#             "data": {
-#                 "address": [
-#     "0xe6aAE8cd183383c161117158c8Ba7A4D02F45fDf"
-# ],
-#                 "time": time.time()
-#             }
-#         },
-#         "jsonrpc": "2.0",
-#         "id": 0
-#     }
+    payload = {
+        "method": "get_balance",
+        "params": {
+            "appid": "hyf_app",
+            "sign": "",
+            "data": {
+                "address": [
+    "0xb5143167d9873699ec2ba75917c4661e5f8ab04d"
+],
+                "time": time.time()
+            }
+        },
+        "jsonrpc": "2.0",
+        "id": 0
+    }
 #     payload = {
 #     "method": "get_all_transaction",
 #     "params": {
