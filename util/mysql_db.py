@@ -61,6 +61,7 @@ class TransactionRecord(Base):
     transaction_time = Column(String(20))
     tx_hash = Column(String(100))
     type = Column(String(10))
+    pay_gas = Column(String(50))
     
 
 class DeployContracts(Base):
@@ -73,6 +74,7 @@ class DeployContracts(Base):
     pay_gas = Column(String(20))
     master_contract_address = Column(String(100))
     contract_address = Column(String(100))
+    contract_name = Column(String(100))
     master_mark = Column(String(20))
     # service_id = Column(Integer, ForeignKey('deploy_contracts.id'), nullable=True)
     

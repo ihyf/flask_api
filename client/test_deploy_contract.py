@@ -135,8 +135,8 @@ payload = {
             "data": {
                 "contract_name": "luckyNumber",
                 "url": parse.quote("http://192.168.1.11:82/upload/luckyNumber.sol"),
-                "master_contract_name": "hyf_master_0121",
-                "master_contract_address": "0x7EE4Ac8386E86779Ce6E89a699C4B1e57B1Cc121",
+                "master_contract_name": "hyf_master_01211651_1754",
+                "master_contract_address": "0xA07F28CCCaF0a3C2b7de54b9eC4E0C8469EB2a1a",
                 "time": time.time()
             },
             "no_decrypt": "no_decrypt"

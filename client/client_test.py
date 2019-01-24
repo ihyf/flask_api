@@ -65,7 +65,7 @@ def main():
             "sign": "",
             "data": {
                 "to_address": "0x3281bD613CeAB444cfa36720552C65F6eC801Bc8",
-                "value": 10,
+                "value": 1,
                 "gas_limit": 40000,
                 "gas_price": gas_price,
                 "pwd": "123456",
@@ -106,21 +106,21 @@ def main():
 #     "jsonrpc": "2.0",
 #     "id": ""
 # }
-    payload = {
-        "method": "get_balance",
-        "params": {
-            "appid": "hyf_app",
-            "sign": "",
-            "data": {
-                "address": [
-    "0xb5143167d9873699ec2ba75917c4661e5f8ab04d"
-],
-                "time": time.time()
-            }
-        },
-        "jsonrpc": "2.0",
-        "id": 0
-    }
+#     payload = {
+#         "method": "get_balance",
+#         "params": {
+#             "appid": "hyf_app",
+#             "sign": "",
+#             "data": {
+#                 "address": [
+#     "0x3ff83cc121adae7953cc96c8fab1463c2756d4d6"
+# ],
+#                 "time": time.time()
+#             }
+#         },
+#         "jsonrpc": "2.0",
+#         "id": 0
+#     }
 #     payload = {
 #     "method": "get_all_transaction",
 #     "params": {
@@ -150,7 +150,7 @@ def main():
     payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
     for i in range(1):
         response = requests.post(
-            url1, data=json.dumps(payload), headers=headers).json()
+            url, data=json.dumps(payload), headers=headers).json()
 
     print(response)
     ddata = ec.decrypt(response["result"]["data"])

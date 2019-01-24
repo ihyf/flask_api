@@ -1181,6 +1181,211 @@ error
 {"result": {"code": "fail":,"error": "xx error"}, "id": 0, "jsonrpc": "2.0"}
 ```
 
+# 合约-下未支付的操作单
+---
+URL:{baseurl}/api
+## 上行
+加密前
+```json
+{
+	"method": "transfer_nopay_op",
+	"jsonrpc": "2.0",
+	"id": "0",
+	"params": {
+		"appid": "hyf_app",
+		"sign": "",
+		"data": {
+			"account": "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1",
+			"func_name": "getbonusMoney",
+			"func_param": "True",
+			"value": 2,
+			"order_id": "111111",
+			"time": time.time()
+		},
+	}
+}
+```
+加密后
+```json
+{
+    "method": "transfer_nopay_op",
+    "params": {
+        "appid": "hyf_app",
+        "sign": "",
+        "data": ""
+    },
+    "jsonrpc": "2.0",
+    "id": ""
+}
+```
+## 下行
+加密前
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "code": "success",
+        "sign": "",
+        "data": {
+            "op_id": "12345"
+        }
+    }
+}
+```
+加密后
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "code": "success",
+        "sign": "",
+        "data": ""
+    }
+}
+```
+```
+error
+{"result": {"code": "fail", "error": "xx error"}, "id": 0, "jsonrpc": "2.0"}
+```
+# 合约-操作单详情
+---
+URL:{baseurl}/api
+## 上行
+加密前
+```json
+{
+	"method": "op_details",
+	"jsonrpc": "2.0",
+	"id": "0",
+	"params": {
+		"appid": "hyf_app",
+		"sign": "",
+		"data": {
+			"op_id": "16",
+			"time": time.time()
+		}
+	}
+}
+```
+加密后
+```json
+{
+    "method": "op_details",
+    "params": {
+        "appid": "hyf_app",
+        "sign": "",
+        "data": ""
+    },
+    "jsonrpc": "2.0",
+    "id": ""
+}
+```
+## 下行
+加密前
+```json
+{
+	"jsonrpc": "2.0",
+	"id": 1,
+	"result": {
+		"code": "success",
+		"sign": "",
+		"data": {
+			"op_info": {
+				"func_name": "getbonusMoney",
+				"func_param": "True",
+				"value": 2
+			}
+		}
+	}
+```
+加密后
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "code": "success",
+        "sign": "",
+        "data": ""
+    }
+}
+```
+```
+error
+{"result": {"code": "fail", "error": "xx error"}, "id": 0, "jsonrpc": "2.0"}
+```
+# 合约-支付并调用操作单
+---
+URL:{baseurl}/api
+## 上行
+加密前
+```json
+{
+	"method": "pay_transfer_op",
+	"jsonrpc": "2.0",
+	"id": "0",
+	"params": {
+		"appid": "hyf_app",
+		"sign": "",
+		"data": {
+			"op_id": "16",
+			"keystore": {},
+			"pwd": "",
+			"time": time.time()
+		}
+	}
+}
+```
+加密后
+```json
+{
+    "method": "pay_transfer_op",
+    "params": {
+        "appid": "hyf_app",
+        "sign": "",
+        "data": ""
+    },
+    "jsonrpc": "2.0",
+    "id": ""
+}
+```
+## 下行
+加密前
+```json
+{
+	"jsonrpc": "2.0",
+	"id": 1,
+	"result": {
+		"code": "success",
+		"sign": "",
+		"data": {
+			"info": {
+				"func_name": "getbonusMoney",
+				"func_param": "True",
+				"value": 2
+			}
+		}
+	}
+}
+```
+加密后
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+        "code": "success",
+        "sign": "",
+        "data": ""
+    }
+}
+```
+```
+error
+{"result": {"code": "fail", "error": "xx error"}, "id": 0, "jsonrpc": "2.0"}
+```
 
 # 钱包后台--获取最新message
 不加密

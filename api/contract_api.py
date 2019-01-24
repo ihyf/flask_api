@@ -4,6 +4,8 @@ import os
 import logging
 import time
 import requests
+from sqlalchemy import desc
+
 import config
 from flask import request
 from cert.eth_checkout import check_conn
@@ -11,10 +13,12 @@ from my_dispatcher import api_add, api
 from util.compile_solidity_utils import w3
 from util.check_fuc import check_kv, get_srv_time
 from util.compile_solidity_utils import deploy_n_transact
-from util.mysql_db import db_manager, DeployContracts, ContractOp
+from util.mysql_db import db_manager, DeployContracts, ContractOp, Apps
 from util.dbmanager import db_manager
 from eth_account import Account
 from urllib import parse
+from util.check_fuc import transfer_contract_tool
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 
 @api_add
@@ -52,21 +56,23 @@ def transfer_contract(*args, **kwargs):
             tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
             w3.eth.waitForTransactionReceipt(tx_hash)
             
-            result = {"data": "{} ok".format(func_name)}
+            result = {"info": "{} ok".format(func_name)}
             type = 1
+            pay_gas = ""
         elif "set" in func_name:
             s = f"""contract_instance.functions.{func_name}({func_param}).transact({{'from': '{account}', 'value': w3.toWei({value}, 'ether')}})"""
             tx_hash = eval(s)
             w3.eth.waitForTransactionReceipt(tx_hash)
 
-            result = {"data": "set {} ok".format(func_name)}
+            result = {"info": "set {} ok".format(func_name)}
             type = 1
+            pay_gas = ""
         elif "get" in func_name:
             result = eval("contract_instance.functions.{func_name}({func_param}).call()".
                           format(func_name=func_name, func_param=func_param))
             tx_hash = ""
             type = 2
-
+            pay_gas = "0"
         # 插入数据库
         try:
             session = db_manager.master()
@@ -80,9 +86,9 @@ def transfer_contract(*args, **kwargs):
             if tx_hash:
                 tx_hash = tx_hash.hex()
             else:
-                tx_hash = "无"
+                tx_hash = "call funcition"
             op = ContractOp(contract_name=contract_name, contract_address=contract_address,
-                            op_info=op_info, op_time=op_time, tx_hash=tx_hash, type=type)
+                            op_info=op_info, op_time=op_time, tx_hash=tx_hash, type=type, pay_gas=pay_gas)
             session.add(op)
             session.commit()
             session.close()
@@ -92,7 +98,6 @@ def transfer_contract(*args, **kwargs):
                 "error": f"{e}"
             }
 
-        result = {"data": result}
         ec_cli = kwargs['ec_cli']
         ec_srv = kwargs['ec_srv']
         sign = ec_srv.sign(result).decode()
@@ -196,8 +201,10 @@ def deploy_contract(*args, **kwargs):
         try:
             session = db_manager.master()
             deploy_time = get_srv_time()
-            new_dc = DeployContracts(contract_name=contract_name, address=account, tx_hash=tx_hash,
-                                     deploy_time=deploy_time, pay_gas=pay_gas, contract_address=contract_address[0])
+            new_dc = DeployContracts(master_contract_name=master_contract_name, deploy_account=account,
+                                     deploy_tx_hash=tx_hash, deploy_time=deploy_time, pay_gas=pay_gas,
+                                     master_contract_address=master_contract_address,
+                                     contract_name=contract_name, contract_address=contract_address[0])
             session.add(new_dc)
             session.commit()
             session.close()
@@ -268,7 +275,7 @@ def add_master_contract(*args, **kwargs):
         deploy_time = get_srv_time()
         new_dc = DeployContracts(master_contract_name=master_contract_name, deploy_account=account, deploy_tx_hash=tx_hash,
                                  deploy_time=deploy_time, pay_gas=pay_gas, master_contract_address=contract_address[0],
-                                 master_mark="master", contract_address="")
+                                 master_mark="master", contract_address="", contract_name="")
         
         session.add(new_dc)
         session.commit()
@@ -297,19 +304,30 @@ def add_master_contract(*args, **kwargs):
 @api_add
 @check_conn(request)
 def transfer_nopay_op(*args, **kwargs):
-    # 未支付的合约调用订单
+    # 未支付的合约调用 操作订单
     data = kwargs['decrypt']
-    necessary_keys = ["account", "contract_name", "func_name",
-                      "func_param", "value", "keystore", "pwd"]
+    necessary_keys = ["account", "func_name", "value", "order_id"]
     check = check_kv(data, necessary_keys)
     if check == "Success":
-        func_name = data.get("func_name")
-        func_param = data.get("func_param")
-        value = data.get("value")
-        func_name = data.get("func_name")
-        
+        appid = kwargs["appid"]
+        appid = "appid_bk_inc12_hyf_test0"
         try:
             session = db_manager.master()
+            app = session.query(Apps).filter(Apps.appid == appid).one()
+            if app:
+                master_contract_address = app.master_contract_address[0]
+                dc = session.query(DeployContracts). \
+                    filter(DeployContracts.master_contract_address == master_contract_address). \
+                    order_by(desc(DeployContracts.id)).first()
+                contract_name = dc.contract_name
+                contract_address = dc.contract_address
+            else:
+                return {"code": "fail", "error": "this app no master_contract_address"}
+            
+            func_name = data.get("func_name")
+            func_param = data.get("func_param")
+            value = data.get("value")
+            order_id = data.get("order_id")
             op_info = {
                 "func_name": func_name,
                 "func_param": func_param,
@@ -317,12 +335,10 @@ def transfer_nopay_op(*args, **kwargs):
             }
             # op_time = time.strftime("%Y-%m-%d %X", time.localtime())
             op_time = get_srv_time()
-            if tx_hash:
-                tx_hash = tx_hash.hex()
-            else:
-                tx_hash = "无"
+
+            # type 2为无需支付 1为已支付 0为初始态 -1为失效
             op = ContractOp(contract_name=contract_name, contract_address=contract_address,
-                            op_info=op_info, op_time=op_time, tx_hash=tx_hash, type=type)
+                            op_info=op_info, op_time=op_time, tx_hash="", type=0)
             session.add(op)
             session.commit()
             session.close()
@@ -331,8 +347,7 @@ def transfer_nopay_op(*args, **kwargs):
                 "code": "fail",
                 "error": f"{e}"
             }
-    
-        result = {"data": result}
+        result = {"op_id": str(op.op_id)}
         ec_cli = kwargs['ec_cli']
         ec_srv = kwargs['ec_srv']
         sign = ec_srv.sign(result).decode()
@@ -344,5 +359,77 @@ def transfer_nopay_op(*args, **kwargs):
             "data": result
         }
     
+    else:
+        return {"code": "fail", "error": check}
+
+
+@api_add
+@check_conn(request)
+def op_details(*args, **kwargs):
+    # 操作详情
+    data = kwargs['decrypt']
+    necessary_keys = ["op_id"]
+    check = check_kv(data, necessary_keys)
+    if check == "Success":
+        try:
+            op_id = data.get("op_id")
+            session = db_manager.slave()
+            op = session.query(ContractOp).filter(ContractOp.op_id == op_id).one()
+            result = {"op_info": op.op_info}
+            ec_cli = kwargs['ec_cli']
+            ec_srv = kwargs['ec_srv']
+            sign = ec_srv.sign(result).decode()
+            result = ec_cli.encrypt(result).decode()
+
+            return {
+                "code": "success",
+                "sign": sign,
+                "data": result
+            }
+        except Exception as e:
+            return {"code": "fail", "error": f"{e}"}
+    else:
+        return {"code": "fail", "error": check}
+
+
+@api_add
+@check_conn(request)
+def pay_transfer_op(*args, **kwargs):
+    data = kwargs['decrypt']
+    necessary_keys = ["op_id", "keystore", "pwd"]
+    check = check_kv(data, necessary_keys)
+    if check == "Success":
+        try:
+            op_id = data.get("op_id")
+            keystore = data.get("keystore")
+            pwd = data.get("pwd")
+            session = db_manager.slave()
+            op = session.query(ContractOp).filter(ContractOp.op_id == op_id).one()
+            contract_name = op.contract_name
+            func_name = op.op_info.get("func_name")
+            func_param = op.op_info.get("func_param")
+            value = op.op_info.get("value")
+            data = {
+               "keystore": keystore,
+                "pwd": pwd,
+                "contract_name": contract_name,
+                "func_name": func_name,
+                "func_param": func_param,
+                "value": value
+            }
+            result = transfer_contract_tool(data)
+            
+            ec_cli = kwargs['ec_cli']
+            ec_srv = kwargs['ec_srv']
+            sign = ec_srv.sign(result).decode()
+            result = ec_cli.encrypt(result).decode()
+    
+            return {
+                "code": "success",
+                "sign": sign,
+                "data": result
+            }
+        except Exception as e:
+            return {"code": "fail", "error": f"{e}"}
     else:
         return {"code": "fail", "error": check}

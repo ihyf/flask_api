@@ -3,12 +3,14 @@ import random
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.automap import automap_base
 
 
 class DBManager(object):
     def __init__(self):
         self.engine_map = {}
         self.session_map = {}
+        self.autobaseobj = {}
 
     def init_app(self, app):
         self.create_sessions(app)
@@ -18,9 +20,13 @@ class DBManager(object):
         for role, urls in db_settings.items():
             self.engine_map[role] = []
             self.session_map[role] = []
+            self.autobaseobj[role] = []
             for url in urls:
-                engin, single_session = self.create_single_session(url)
-                self.engine_map[role].append(engin)
+                engine, single_session = self.create_single_session(url)
+                autobase = automap_base()
+                autobase.prepare(engine, reflect=True)
+                self.autobaseobj[role].append(autobase)
+                self.engine_map[role].append(engine)
                 self.session_map[role].append(single_session)
 
     @classmethod
@@ -54,6 +60,41 @@ class DBManager(object):
         session = db_session()
         session._model_changes = {}    # ???
         return session
+
+    def autobase(self):
+        return self.autobaseobj
+
+    def _ab_slave(self):
+        return random.choice(self.autobaseobj['slave'])
+
+    def _ab_master(self):
+        return random.choice(self.autobaseobj['master'])
+
+    def get_table(self, tname):
+        autobase = db_manager._ab_master()
+        for try_times in range(2):
+            try:
+                table_obj = getattr(autobase.classes, tname)
+                return True, table_obj
+            except AttributeError as e:
+                if try_times == 1:
+                    return False, f"{e}"
+                self.flush_autobase()
+                continue
+            except Exception as e:
+                return False, f"{e}"
+        else:
+            return False, "somethins happend"
+
+    def flush_autobase(self):
+        # 有可能会出现意外
+        self.autobaseobj = {}
+        for name, engines in self.engine_map.items():
+            self.autobaseobj[name] = []
+            for engine in engines:
+                autobase = automap_base()
+                autobase.prepare(engine, reflect=True)
+                self.autobaseobj[name].append(autobase)
 
 
 class DBProxy(object):
