@@ -509,6 +509,16 @@ def add_app(*args, **kwargs):
 
 
 @api_add
-def test_liujin(*args, **kwargs):
-    print(kwargs)
+def test_redis(*args, **kwargs):
+    import json
+    from util.db_redis import redis_store
+    r = {
+        "order_id": "1",
+        "fee": "2",
+        "op_id": "3",
+        "call_back_url": "",
+        "address": "4"
+    }
+    r_j = json.dumps(r)
+    redis_store.lpush("data", r_j)
     return {"data": "liujin zhenshuai"}

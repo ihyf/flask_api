@@ -18,11 +18,10 @@ payload = {
             "appid": "hyf_app",
             "sign": "",
             "data": {
-                "account": "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1",
-                "func_name": "getbonusMoney",
-                "func_param": "True",
-                "value": 2,
-                "order_id": "111111",
+                "func_name": "tResult",
+                "func_param": "",
+                "value": 0,
+                "order_id": "04",
                 "time": time.time()
             },
         }
@@ -42,7 +41,7 @@ payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
 
 for i in range(1):
     response = requests.post(
-        url, data=json.dumps(payload), headers=headers).json()
+        url1, data=json.dumps(payload), headers=headers).json()
 
 print(response)
 ddata = ec.decrypt(response["result"]["data"])

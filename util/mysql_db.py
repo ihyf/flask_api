@@ -112,6 +112,7 @@ class ContractOp(Base):
     op_time = Column(String(20))
     tx_hash = Column(String(100))
     order_id = Column(String(100))
+    pay_gas = Column(String(50))
     type = Column(Integer, default=0)  # 2为无需支付 1为已支付 0为初始态 -1为失效
     
     

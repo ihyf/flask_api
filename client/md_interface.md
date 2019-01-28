@@ -1330,9 +1330,9 @@ URL:{baseurl}/api
 		"appid": "hyf_app",
 		"sign": "",
 		"data": {
-			"op_id": "16",
+			"op_id": "24",
 			"keystore": {},
-			"pwd": "",
+			"pwd": "hyf",
 			"time": time.time()
 		}
 	}
@@ -1361,11 +1361,7 @@ URL:{baseurl}/api
 		"code": "success",
 		"sign": "",
 		"data": {
-			"info": {
-				"func_name": "getbonusMoney",
-				"func_param": "True",
-				"value": 2
-			}
+			"info": "set setChooseGame ok"
 		}
 	}
 }
@@ -1458,17 +1454,10 @@ URL:{baseurl}/api
 ```json
 {
 	"result": {
-		"data": [{
-			"id": 16,
-			"question": "2",
-			"answer": "2",
-			"edit_time": "2019-01-15 11:21:11"
-		}, {
-			"id": 15,
-			"question": "2",
-			"answer": "2",
-			"edit_time": "2019-01-15 11:21:08"
-		}]
+		"code": "success",
+		"data": {
+			"url": "http://127.0.0.1:7000/main/h5_help_list/"
+		}
 	},
 	"id": 1,
 	"jsonrpc": "2.0"
@@ -1531,24 +1520,14 @@ URL:{baseurl}/api
 
 ```json
 {
-    "result": {
-        "data": [
-            {
-                "id": 4,
-                "protocol_name": "协议名",
-                "protocol_content": "协议内容",
-                "edit_time": "2019-01-15 14:56:19"
-            },
-            {
-                "id": 1,
-                "protocol_name": "协议名",
-                "protocol_content": "协议内容",
-                "edit_time": "2019-01-15 09:47:14"
-            }
-        ]
-    },
-    "id": 1,
-    "jsonrpc": "2.0"
+	"result": {
+		"code": "success",
+		"data": {
+			"url": "http://127.0.0.1:7000/main/userknow/"
+		}
+	},
+	"id": 1,
+	"jsonrpc": "2.0"
 }
 ```
 ```

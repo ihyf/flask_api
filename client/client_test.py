@@ -58,24 +58,24 @@ def main():
     # }
     gas_price = w3.eth.gasPrice
     print(gas_price)
-    payload = {
-        "method": "send_transaction",
-        "params": {
-            "appid": "hyf_app",
-            "sign": "",
-            "data": {
-                "to_address": "0x3281bD613CeAB444cfa36720552C65F6eC801Bc8",
-                "value": 1,
-                "gas_limit": 40000,
-                "gas_price": gas_price,
-                "pwd": "123456",
-                "keystore": keystore_poa_node1,
-                "time": time.time()
-            }
-        },
-        "jsonrpc": "2.0",
-        "id": 0
-    }
+    # payload = {
+    #     "method": "send_transaction",
+    #     "params": {
+    #         "appid": "hyf_app",
+    #         "sign": "",
+    #         "data": {
+    #             "to_address": "0x3281bD613CeAB444cfa36720552C65F6eC801Bc8",
+    #             "value": 1,
+    #             "gas_limit": 40000,
+    #             "gas_price": gas_price,
+    #             "pwd": "123456",
+    #             "keystore": keystore_poa_node1,
+    #             "time": time.time()
+    #         }
+    #     },
+    #     "jsonrpc": "2.0",
+    #     "id": 0
+    # }
     # payload = {
     #     "method": "import_private_key",
     #     "params": {
@@ -106,21 +106,21 @@ def main():
 #     "jsonrpc": "2.0",
 #     "id": ""
 # }
-#     payload = {
-#         "method": "get_balance",
-#         "params": {
-#             "appid": "hyf_app",
-#             "sign": "",
-#             "data": {
-#                 "address": [
-#     "0x3ff83cc121adae7953cc96c8fab1463c2756d4d6"
-# ],
-#                 "time": time.time()
-#             }
-#         },
-#         "jsonrpc": "2.0",
-#         "id": 0
-#     }
+    payload = {
+        "method": "get_balance",
+        "params": {
+            "appid": "hyf_app",
+            "sign": "",
+            "data": {
+                "address": ["0xbb77bbdfe61713495fe3041b9783c51a07adae8a",
+                            "0x2f22eff53d62ad4b1433de288c3abcc3021668f1",
+                            "0x9f931061882ff40c3d91d64bcccd3b1a9660430f"],
+                "time": time.time()
+            }
+        },
+        "jsonrpc": "2.0",
+        "id": 0
+    }
 #     payload = {
 #     "method": "get_all_transaction",
 #     "params": {
@@ -150,7 +150,7 @@ def main():
     payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
     for i in range(1):
         response = requests.post(
-            url, data=json.dumps(payload), headers=headers).json()
+            url1, data=json.dumps(payload), headers=headers).json()
 
     print(response)
     ddata = ec.decrypt(response["result"]["data"])

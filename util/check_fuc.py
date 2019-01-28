@@ -67,7 +67,7 @@ def transfer_contract_tool(data):
     nonce = w3.eth.getTransactionCount(account)
     
     if "get" not in func_name and "set" not in func_name:
-        ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 200000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+        ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
         t_dict = eval(ss1)
         signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
         tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
@@ -90,30 +90,4 @@ def transfer_contract_tool(data):
         tx_hash = ""
         type = 2
         pay_gas = "0"
-    
-    # 插入数据库
-    try:
-        session = db_manager.master()
-        op_info = {
-            "func_name": func_name,
-            "func_param": func_param,
-            "value": value
-        }
-        # op_time = time.strftime("%Y-%m-%d %X", time.localtime())
-        op_time = get_srv_time()
-        if tx_hash:
-            tx_hash = tx_hash.hex()
-        else:
-            tx_hash = "call funcition"
-        op = ContractOp(contract_name=contract_name, contract_address=contract_address,
-                        op_info=op_info, op_time=op_time, tx_hash=tx_hash, type=type, pay_gas=pay_gas)
-        session.add(op)
-        session.commit()
-        session.close()
-    except Exception as e:
-        return {
-            "code": "fail",
-            "error": f"{e}"
-        }
-    
-    return result
+    return [result, tx_hash, pay_gas, type, account]

@@ -11,52 +11,66 @@ class DBManager(object):
         self.engine_map = {}
         self.session_map = {}
         self.autobaseobj = {}
+        self.app = None
+        self.alias = []
 
     def init_app(self, app):
+        self.app = app
         self.create_sessions(app)
 
     def create_sessions(self, app):
         db_settings = app.config['SQLALCHEMY_DATABASE_URI_SETTINGS']
-        for role, urls in db_settings.items():
-            self.engine_map[role] = []
-            self.session_map[role] = []
-            self.autobaseobj[role] = []
-            for url in urls:
-                engine, single_session = self.create_single_session(url)
-                autobase = automap_base()
-                autobase.prepare(engine, reflect=True)
-                self.autobaseobj[role].append(autobase)
-                self.engine_map[role].append(engine)
-                self.session_map[role].append(single_session)
+        for dbalias, dbinfo in db_settings.items():
+            self.alias.append(dbalias)
+            self.engine_map[dbalias] = {}
+            self.session_map[dbalias] = {}
+            self.autobaseobj[dbalias] = {}
+            for role, urls in dbinfo.items():
+                self.engine_map[dbalias][role] = []
+                self.session_map[dbalias][role] = []
+                self.autobaseobj[dbalias][role] = []
+                for url in urls:
+                    engine, single_session = self.create_single_session(url)
+                    autobase = automap_base()
+                    autobase.prepare(engine, reflect=True)
+                    self.autobaseobj[dbalias][role].append({
+                        "engine": engine,
+                        "autobase": autobase,
+                    })
+                    self.engine_map[dbalias][role].append(engine)
+                    self.session_map[dbalias][role].append(single_session)
 
     @classmethod
     def create_single_session(cls, url, scopefunc=None):
         engine = create_engine(url, pool_recycle=7200, pool_size=50)
         return engine, scoped_session(sessionmaker(expire_on_commit=False, bind=engine), scopefunc=scopefunc)
 
-    def get_session(self, name):
+    def get_session(self, name, dbalias):
         try:
             if not name:
                 # 当没有提供名字时，我们默认为读请求，
                 name = 'slave'
             # 现在的逻辑是在当前所有的配置中随机选取一个数据库，
-            return random.choice(self.session_map[name])
+            return random.choice(self.session_map[dbalias][name])
         except KeyError:
             raise KeyError('{} not created, check your DB_SETTINGS'.format(name))
         except IndexError:
             raise IndexError('cannot get names from DB_SETTINGS')
 
-    def get_engine_master(self):
-        return self.engine_map['master'][0]
+    def get_engine_master(self, dbalias):
+        return random.choice(self.engine_map[dbalias]['master'])
 
-    def master(self):
-        return random.choice(self.session_map['master'])
+    def get_autobase_obj(self, dbalias):
+        return self._ab_master(dbalias)
 
-    def slave(self):
-        return random.choice(self.session_map['slave'])
+    def master(self, dbalias="default"):
+        return random.choice(self.session_map[dbalias]['master'])
 
-    def session_ctx(self, bind=None):
-        db_session = self.get_session(bind)
+    def slave(self, dbalias="default"):
+        return random.choice(self.session_map[dbalias]['slave'])
+
+    def session_ctx(self, dbalias, bind=None):
+        db_session = self.get_session(bind, dbalias)
         session = db_session()
         session._model_changes = {}    # ???
         return session
@@ -64,37 +78,42 @@ class DBManager(object):
     def autobase(self):
         return self.autobaseobj
 
-    def _ab_slave(self):
-        return random.choice(self.autobaseobj['slave'])
+    def _ab_slave(self, dbalias):
+        return random.choice(self.autobaseobj[dbalias]['slave'])
 
-    def _ab_master(self):
-        return random.choice(self.autobaseobj['master'])
+    def _ab_master(self, dbalias):
+        return random.choice(self.autobaseobj[dbalias]['master'])
 
-    def get_table(self, tname):
-        autobase = db_manager._ab_master()
-        for try_times in range(2):
-            try:
-                table_obj = getattr(autobase.classes, tname)
-                return True, table_obj
-            except AttributeError as e:
-                if try_times == 1:
-                    return False, f"{e}"
-                self.flush_autobase()
-                continue
-            except Exception as e:
-                return False, f"{e}"
-        else:
-            return False, "somethins happend"
+    def get_table(self, tname, dbalias):
+        if dbalias not in self.alias:
+            return False, "dbalias not exists"
+        abobj = db_manager._ab_master(dbalias)
+        try:
+            table_obj = getattr(abobj['autobase'].classes, tname)
+        # except AttributeError as e:
+        #     pass
+        except Exception as e:
+            return False, f"Exception: {e}"
+        return True, table_obj
 
-    def flush_autobase(self):
-        # 有可能会出现意外
-        self.autobaseobj = {}
-        for name, engines in self.engine_map.items():
-            self.autobaseobj[name] = []
-            for engine in engines:
-                autobase = automap_base()
-                autobase.prepare(engine, reflect=True)
-                self.autobaseobj[name].append(autobase)
+    def test_table(self, tname, dbalias):
+        if dbalias not in self.alias:
+            return None
+        abobj = db_manager._ab_master(dbalias)
+        try:
+            table = abobj['autobase'].metadata.tables[tname]
+        except Exception as e:
+            return False
+        return True
+
+    def flush_autobase(self, dbalias):
+        for name, objs in self.autobaseobj[dbalias].items():
+            for obj in objs:
+                obj['autobase'] = automap_base()
+                obj['autobase'].prepare(obj['engine'], reflect=True)
+
+    def dbs_alias_list(self):
+        return self.alias
 
 
 class DBProxy(object):

@@ -19,24 +19,38 @@ from eth_account import Account
 from urllib import parse
 from util.check_fuc import transfer_contract_tool
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
+from util.db_redis import redis_store
 
 
 @api_add
 @check_conn(request)
 def transfer_contract(*args, **kwargs):
     # 调用合约公共接口
+    appid = kwargs["appid"]
     data = kwargs['decrypt']
     necessary_keys = ["account", "contract_name", "func_name",
-                      "func_param", "value", "keystore", "pwd"]
+                      "func_param", "keystore", "pwd"]
     check = check_kv(data, necessary_keys)
     if check == "Success":
         account = data.get("account", None)
-        contract_name = data.get("contract_name", None)
+        # contract_name = data.get("contract_name", None)
         func_name = data.get("func_name", None)
         func_param = data.get("func_param", None)
         value = data.get("value", None)
         keystore = data.get("keystore", None)
         pwd = data.get("pwd", None)
+
+        session = db_manager.master()
+        app = session.query(Apps).filter(Apps.appid == appid).one()
+        if app:
+            master_contract_address = app.master_contract_address[0]
+            dc = session.query(DeployContracts). \
+                filter(DeployContracts.master_contract_address == master_contract_address). \
+                order_by(desc(DeployContracts.id)).first()
+            contract_name = dc.contract_name
+            contract_address = dc.contract_address
+        else:
+            return {"code": "fail", "error": "this app no master_contract_address"}
 
         with open("json_files/data_{}.json".format(contract_name), 'r') as f:
             datastore = json.load(f)
@@ -49,13 +63,12 @@ def transfer_contract(*args, **kwargs):
         account_instance = Account.privateKeyToAccount(private_key)
 
         if "get" not in func_name and "set" not in func_name:
-            ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 200000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+            ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
             t_dict = eval(ss1)
             print(t_dict)
             signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
             tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
             w3.eth.waitForTransactionReceipt(tx_hash)
-            
             result = {"info": "{} ok".format(func_name)}
             type = 1
             pay_gas = ""
@@ -306,11 +319,10 @@ def add_master_contract(*args, **kwargs):
 def transfer_nopay_op(*args, **kwargs):
     # 未支付的合约调用 操作订单
     data = kwargs['decrypt']
-    necessary_keys = ["account", "func_name", "value", "order_id"]
+    necessary_keys = ["func_name", "order_id"]
     check = check_kv(data, necessary_keys)
     if check == "Success":
         appid = kwargs["appid"]
-        appid = "appid_bk_inc12_hyf_test0"
         try:
             session = db_manager.master()
             app = session.query(Apps).filter(Apps.appid == appid).one()
@@ -338,7 +350,7 @@ def transfer_nopay_op(*args, **kwargs):
 
             # type 2为无需支付 1为已支付 0为初始态 -1为失效
             op = ContractOp(contract_name=contract_name, contract_address=contract_address,
-                            op_info=op_info, op_time=op_time, tx_hash="", type=0)
+                            op_info=op_info, op_time=op_time, tx_hash="", type=0, order_id=order_id)
             session.add(op)
             session.commit()
             session.close()
@@ -409,6 +421,7 @@ def pay_transfer_op(*args, **kwargs):
             func_name = op.op_info.get("func_name")
             func_param = op.op_info.get("func_param")
             value = op.op_info.get("value")
+            order_id = op.order_id
             data = {
                "keystore": keystore,
                 "pwd": pwd,
@@ -417,10 +430,38 @@ def pay_transfer_op(*args, **kwargs):
                 "func_param": func_param,
                 "value": value
             }
-            result = transfer_contract_tool(data)
+            result_list = transfer_contract_tool(data)
+            result = result_list[0]
+            tx_hash = result_list[1]
+            pay_gas = result_list[2]
+            type = result_list[3]
+            account = result_list[4]
+            op_time = get_srv_time()
+
+            op.tx_hash = tx_hash
+            op.pay_gas = pay_gas
+            op.op_time = op_time
+            op.type = type
+            
+            session.commit()
+            session.close()
             
             ec_cli = kwargs['ec_cli']
             ec_srv = kwargs['ec_srv']
+            
+            # 要push到redis的数据
+            notify_queue = {
+                "order_id": order_id,
+                "fee": value,
+                "op_id": op_id,
+                "callback_url": kwargs["callback_url"],
+                "address": account,
+                "srv_private_key": ec_srv.private_key_str,
+                "cli_public_key": ec_cli.public_key_str
+            }
+            notify_queue = json.dumps(notify_queue)
+            redis_store.lpush("notify_queue", notify_queue)
+            
             sign = ec_srv.sign(result).decode()
             result = ec_cli.encrypt(result).decode()
     

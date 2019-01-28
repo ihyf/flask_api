@@ -17,7 +17,7 @@ uint32
 ## getbonusMoney()
 返回值:
 
-uint256
+    uint256
 ## tBetting(_betNumber)
 参数类型:
 
