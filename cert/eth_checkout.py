@@ -101,6 +101,7 @@ def check_conn(request):
             kw['verify'] = True
             kw['ec_cli'] = ec_cli
             kw['ec_srv'] = ec_srv
+            kw['callback_url'] = res_kes['callback_url']
             return func(*args, **kw)
         return wrapper
     return decorator
@@ -108,16 +109,17 @@ def check_conn(request):
 
 def delete_checkout_redis(appid):
     pkeys = product_keys(appid)
-    redis_store.delete(*pkeys.keys())
-    # redis_store.delete(
-    #     pkeys["checkout_keys"],
-    #     pkeys["checkout_ns"],
-    #     pkeys["checkout_ip"],
-    #     pkeys["checkout_srv"],
-    #     pkeys["checkout_update"],
-    #     pkeys["checkout_mc_address"],
-    #     pkeys["checkout_wallet_addr"],
-    # )
+    # redis_store.delete(*pkeys.keys())
+    redis_store.delete(
+        pkeys["checkout_keys"],
+        pkeys["checkout_ns"],
+        pkeys["checkout_ip"],
+        pkeys["checkout_srv"],
+        pkeys["checkout_update"],
+        pkeys["checkout_mc_address"],
+        pkeys["checkout_wallet_addr"],
+        pkeys["checkout_callback_url"],
+    )
 
 
 def product_keys(appid):

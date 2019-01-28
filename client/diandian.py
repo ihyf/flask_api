@@ -118,7 +118,9 @@ class DianDian(object):
                 "bk_status",
                 "bk_cleanup",
                 "bk_reset",
+                "xxxxxxxxx",
             ],
+            "callback_url": "http://www.163.com/ab/cd/e",
             # "ns": ["全部更新，不接受增量更新", "ns2"],
             # "ip": ["全部更新，不接受增量更新", "ip2"],
             # "srv": ["全部更新，不接受增量更新", "srv2"],
@@ -184,11 +186,14 @@ class DianDian(object):
 if __name__ == "__main__":
     dd = DianDian()
     # dd.bk_remove()
+    # for i in range(2):
+    #     name = f"appid_bk_inc12_{i}"
+    #     dd.bk_create(appid=name)
+    # dd.bk_reset()
+    dd.bk_edit()
     for i in range(2):
         name = f"appid_bk_inc12_{i}"
         dd.bk_create(appid=name)
-    # dd.bk_reset()
-    # dd.bk_edit()
     # dd.bk_info()
     # dd.bk_status()
     # dd.bk_cleanup()
