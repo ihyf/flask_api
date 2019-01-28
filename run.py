@@ -32,10 +32,34 @@ html = """
     </form>
     """
 
+html_md = """
+    <!DOCTYPE html>
+    <title>Contract Upload</title>
+    <h1>Contract Upload</h1>
+    <form method=post enctype=multipart/form-data>
+         <input type=file name=file>
+         <input type=submit value=upload>
+    </form>
+    """
+
+
+@app.template_filter('md')
+def markdown_to_html(txt):
+    from markdown import markdown
+    return markdown(txt)
+
 
 @app.route('/')
 def hello():
     return "hello"
+
+
+@app.route("/contract_md", methods=["GET", "POST"])
+def show_contract_md():
+    path = (os.path.dirname(__file__)+"/client/contracts_func.md")
+    with open(path, mode='r', encoding="utf-8") as f:
+        contracts_func = f.read()
+    return render_template("index.html", body=contracts_func)
 
 
 @app.route('/upload_contract', methods=['GET', 'POST'])

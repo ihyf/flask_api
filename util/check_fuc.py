@@ -91,3 +91,5 @@ def transfer_contract_tool(data):
         type = 2
         pay_gas = "0"
     return [result, tx_hash, pay_gas, type, account]
+
+

@@ -71,6 +71,7 @@ contract userRecords {
 
 url1 = "http://localhost:9000/api"
 url = "http://192.168.1.14:9000/api"
+url_waiwang = "http://47.52.166.23:9000/api"
 headers = {"content-type": "application/json"}
 
 
@@ -80,7 +81,7 @@ payload = {
             "appid": "hyf_app",
             "sign": "",
             "data": {
-                "master_contract_name": "hyf_master_201901241629",
+                "master_contract_name": "hyf_master_201901281203",
                 "time": time.time()
             }
         },
@@ -102,7 +103,7 @@ payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
 
 for i in range(1):
     response = requests.post(
-        url, data=json.dumps(payload), headers=headers).json()
+        url_waiwang, data=json.dumps(payload), headers=headers).json()
 
 print(response)
 ddata = ec.decrypt(response["result"]["data"])

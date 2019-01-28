@@ -51,7 +51,7 @@ def check_conn(request):
                     if request.remote_addr in IPy.IP(ip_net):
                         break
                 else:
-                    return {"code": "fail", "error": "illegal ip request"}
+                    return {"code": "fail", "error": f"illegal ip request: {request.remote_addr}"}
             except Exception as e:
                 return {"code": "fail", "error": f"match ip error: {e}"}
 
@@ -67,7 +67,7 @@ def check_conn(request):
             ns_re = ns_re.replace(".", "\.").replace("*", ".*?").replace('[', '\[').replace(']', '\]')
             try:
                 if not re.match(ns_re, real_host, re.I):
-                    return {"code": "fail", "error": "illegal domain request"}
+                    return {"code": "fail", "error": f"illegal domain request: {real_host}"}
             except Exception as e:
                 return {"code": "fail", "error": f"match domain error: {e}"}
             # 客户端

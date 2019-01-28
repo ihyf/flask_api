@@ -45,5 +45,5 @@ for i in range(1):
         url_waiwang, data=json.dumps(payload), headers=headers).json()
 
 print(response)
-ddata = ec.decrypt(response["result"]["data"])
-print(ddata)
+# ddata = ec.decrypt(response["result"]["data"])
+# print(ddata)
