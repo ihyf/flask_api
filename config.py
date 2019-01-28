@@ -26,20 +26,22 @@ w3_url = "http://47.244.122.201:8101"
 # w3_url = "http://127.0.0.1:8545"
 
 # 服务器上用
-# SQLALCHEMY_DATABASE_URI_SETTINGS = {
-#     "default": {
-#         'master': [
-#             'mysql+pymysql://eth:qCx4V-3p2KYbV86o6Su4E6)43+=3.ax+@172.17.0.1/eth?charset=utf8',
-#         ],
-#         'slave': [
-#             'mysql+pymysql://eth:qCx4V-3p2KYbV86o6Su4E6)43+=3.ax+@172.17.0.1/eth?charset=utf8',
-#             'mysql+pymysql://eth:qCx4V-3p2KYbV86o6Su4E6)43+=3.ax+@172.17.0.1/eth?charset=utf8',
-#         ]
-#     },
-#     # "other": {
-#     #     'master': [],
-#     #     'slave': []
-#     # }
-# }
+SQLALCHEMY_DATABASE_URI_SETTINGS_bak = {
+    "default": {
+        'master': [
+            'mysql+pymysql://eth:qCx4V-3p2KYbV86o6Su4E6)43+=3.ax+@172.17.0.1/eth?charset=utf8',
+        ],
+        'slave': [
+            'mysql+pymysql://eth:qCx4V-3p2KYbV86o6Su4E6)43+=3.ax+@172.17.0.1/eth?charset=utf8',
+            'mysql+pymysql://eth:qCx4V-3p2KYbV86o6Su4E6)43+=3.ax+@172.17.0.1/eth?charset=utf8',
+        ]
+    },
+    # "other": {
+    #     'master': [],
+    #     'slave': []
+    # }
+}
+
+REDIS_URL_bak = "redis://:@192.168.1.20:6379/0?charset=utf8&decode_responses=true"
 
 

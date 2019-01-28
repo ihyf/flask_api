@@ -56,8 +56,9 @@ def hello():
 
 @app.route("/contract_md", methods=["GET", "POST"])
 def show_contract_md():
-    path = (os.path.dirname(__file__)+"/client/contracts_func.md")
-    with open(path, mode='r', encoding="utf-8") as f:
+    # path = (os.path.dirname(__file__)+"/client/contracts_func.md")
+    # print(os.path.join(os.path.abspath(os.path.dirname(__file__))))
+    with open("client/contracts_func.md", mode='r', encoding="utf-8") as f:
         contracts_func = f.read()
     return render_template("index.html", body=contracts_func)
 

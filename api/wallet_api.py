@@ -82,7 +82,7 @@ def get_balance(*args, **kwargs):
     address_list = data.get("address", None)
     L = []
     if address_list:
-        # address_list = eval(address_list)
+        address_list = eval(address_list)
         for address in address_list:
             address = w3.toChecksumAddress(address)
             eth_balance = w3.fromWei(w3.eth.getBalance(address, 'latest'), 'ether')
