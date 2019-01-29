@@ -1263,8 +1263,11 @@ URL:{baseurl}/api
 		"appid": "hyf_app",
 		"sign": "",
 		"data": {
-			"op_id": "16",
-			"time": time.time()
+			"op_info": {
+				"func_name": "tPay",
+				"func_param": "8",
+				"value": "5"
+			}
 		}
 	}
 }
@@ -1299,6 +1302,7 @@ URL:{baseurl}/api
 			}
 		}
 	}
+}
 ```
 加密后
 ```json

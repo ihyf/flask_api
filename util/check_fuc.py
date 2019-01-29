@@ -3,7 +3,7 @@ import json
 from util.compile_solidity_utils import w3
 from util.dbmanager import db_manager
 from eth_account import Account
-from util.mysql_db import ContractOp
+from util.mysql_db import ContractOp, TransactionRecord
 
 
 def check_kv(d1, necessary_keys):
@@ -90,6 +90,44 @@ def transfer_contract_tool(data):
         tx_hash = ""
         type = 2
         pay_gas = "0"
-    return [result, tx_hash, pay_gas, type, account]
+    return [result, tx_hash.hex(), pay_gas, type, account]
+
+
+def send_100_to_new_account(to_address):
+    # 创建账户送100个币
+    keystore = {"address":"a53683641b86640e539f5224e3a062b10fe8c830","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"0be3e7461ab510e0a4a56bd3c55ba785"},"ciphertext":"94bd89d02f3bfee46e6634c15cba5ad2d4449daf03bd811780069cda880b5181","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"6446f4ef06f1c58794fc8aae631950b3"},"mac":"375e14236a14df9507ad0737a7b037b7e18051a2899edd6ee7092afc6af28eee"},"id":"6d8f91a9-f18d-4377-b590-49befcd8eb04","version":3}
+    pwd = "hyf"
+    private_key = Account.decrypt(json.dumps(keystore), pwd)
+    account = Account.privateKeyToAccount(private_key)
+    from_address = account.address
+    nonce = w3.eth.getTransactionCount(account.address)
+    transaction_dict = {
+        'to': to_address,
+        'value': w3.toWei(100, 'ether'),
+        'gas': 200000,
+        'gasPrice': w3.toWei(30, 'gwei'),
+        'nonce': nonce,
+        'chainId': 1500
+    }
+    signed = account.signTransaction(transaction_dict)
+    tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
+    
+    # receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+    receipt = 1
+    if receipt:
+        # 插入数据库
+        # transaction_time = time.strftime("%Y-%m-%d %X", time.localtime())
+        # 服务器时间 + 8 hour
+        transaction_time = get_srv_time()
+        session = db_manager.master()
+        try:
+            new_tr = TransactionRecord(from_address=from_address, to_address=to_address,
+                                       value=100, transaction_time=transaction_time,
+                                       tx_hash=tx_hash.hex(), type=1)
+            session.add(new_tr)
+            session.commit()
+            session.close()
+        except Exception as e:
+            return {"code": "fail", "error": f"{e}"}
 
 

@@ -19,8 +19,9 @@ a4 = "0x3cd1dd1000638e383bae1dba304ad1ba097705f5"
 a0 = "0xbb77bbdfe61713495fe3041b9783c51a07adae8a"
 url = "http://localhost:9000/api"
 url11 = "http://192.168.1.14:9000/api"
+url_waiwang = "http://47.52.166.23:9000/api"
 headers = {"content-type": "application/json"}
-
+k_hyf = {"address":"a53683641b86640e539f5224e3a062b10fe8c830","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"0be3e7461ab510e0a4a56bd3c55ba785"},"ciphertext":"94bd89d02f3bfee46e6634c15cba5ad2d4449daf03bd811780069cda880b5181","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"6446f4ef06f1c58794fc8aae631950b3"},"mac":"375e14236a14df9507ad0737a7b037b7e18051a2899edd6ee7092afc6af28eee"},"id":"6d8f91a9-f18d-4377-b590-49befcd8eb04","version":3}
 
 payload = {
         "method": "pay_transfer_op",
@@ -30,8 +31,8 @@ payload = {
             "appid": "hyf_app",
             "sign": "",
             "data": {
-                "op_id": "30",
-                "keystore": keystore0,
+                "op_id": "69",
+                "keystore": k_hyf,
                 "pwd": "hyf",
                 "time": time.time()
             }
@@ -52,7 +53,7 @@ payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
 
 for i in range(1):
     response = requests.post(
-        url11, data=json.dumps(payload), headers=headers).json()
+        url, data=json.dumps(payload), headers=headers).json()
 
 print(response)
 ddata = ec.decrypt(response["result"]["data"])

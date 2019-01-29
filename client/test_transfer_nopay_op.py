@@ -6,7 +6,7 @@ from urllib import parse
 
 
 url = "http://localhost:9000/api"
-url1 = "http://192.168.1.14:9000/api"
+url14 = "http://192.168.1.14:9000/api"
 url_waiwang = "http://47.52.166.23:9000/api"
 headers = {"content-type": "application/json"}
 

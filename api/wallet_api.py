@@ -4,7 +4,7 @@ import logging
 import time
 from my_dispatcher import api_add, api
 from util.compile_solidity_utils import w3
-from util.check_fuc import check_kv
+from util.check_fuc import check_kv, send_100_to_new_account
 from flask import request
 from eth_account import Account
 from mnemonic.mnemonic import Mnemonic
@@ -36,6 +36,9 @@ def create_account(*args, **kwargs):
         public_key = private_key.public_key
         address = public_key.to_checksum_address()
         wallet = Account.encrypt(account.privateKey, pwd)
+        
+        # 新建用户打100个币
+        send_100_to_new_account(address)
         
         # 插入数据库
         create_time = time.strftime("%Y-%m-%d %X", time.localtime())
@@ -145,12 +148,7 @@ def send_transaction(*args, **kwargs):
         }
         signed = account.signTransaction(transaction_dict)
         tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
-        # #
-        # loop = asyncio.new_event_loop()
-        # asyncio.set_event_loop(loop)
-        # tasks = [wait_transactio_confirm(tx_hash)]
-        # results = loop.run_until_complete(asyncio.wait(*tasks))
-        # #
+        
         # receipt = w3.eth.waitForTransactionReceipt(tx_hash)
         receipt = 1
         if receipt:

@@ -8,7 +8,7 @@ from urllib import parse
 url = "http://localhost:9000/api"
 url11 = "http://192.168.1.14:9000/api"
 headers = {"content-type": "application/json"}
-
+url_waiwang = "http://47.52.166.23:9000/api"
 
 payload = {
         "method": "op_details",
@@ -18,7 +18,7 @@ payload = {
             "appid": "hyf_app",
             "sign": "",
             "data": {
-                "op_id": "30",
+                "op_id": "64",
                 "time": time.time()
             }
         }
@@ -38,7 +38,7 @@ payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
 
 for i in range(1):
     response = requests.post(
-        url11, data=json.dumps(payload), headers=headers).json()
+        url_waiwang, data=json.dumps(payload), headers=headers).json()
 
 print(response)
 ddata = ec.decrypt(response["result"]["data"])

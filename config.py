@@ -42,6 +42,6 @@ SQLALCHEMY_DATABASE_URI_SETTINGS_bak = {
     # }
 }
 
-REDIS_URL_bak = "redis://:@192.168.1.20:6379/0?charset=utf8&decode_responses=true"
+REDIS_URL_bak = "redis://:@172.17.0.1:6379/0?charset=utf8&decode_responses=true"
 
 

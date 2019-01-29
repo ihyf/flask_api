@@ -102,6 +102,7 @@ def check_conn(request):
             kw['ec_cli'] = ec_cli
             kw['ec_srv'] = ec_srv
             kw['callback_url'] = res_kes['callback_url']
+            kw["master_contract_address"] = res_kes["master_contract_address"]
             return func(*args, **kw)
         return wrapper
     return decorator

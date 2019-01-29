@@ -338,12 +338,14 @@ def transfer_nopay_op(*args, **kwargs):
             
             func_name = data.get("func_name")
             func_param = data.get("func_param")
-            value = data.get("value")
+            callback_url = data.get("callback_url")
+            value = str(data.get("value"))
             order_id = data.get("order_id")
             op_info = {
                 "func_name": func_name,
                 "func_param": func_param,
-                "value": value
+                "value": value,
+                "callback_url": callback_url
             }
             # op_time = time.strftime("%Y-%m-%d %X", time.localtime())
             op_time = get_srv_time()
@@ -421,6 +423,7 @@ def pay_transfer_op(*args, **kwargs):
             func_name = op.op_info.get("func_name")
             func_param = op.op_info.get("func_param")
             value = op.op_info.get("value")
+            callback_url = op.op_info.get("callback_url")
             order_id = op.order_id
             data = {
                "keystore": keystore,
@@ -450,14 +453,15 @@ def pay_transfer_op(*args, **kwargs):
             ec_srv = kwargs['ec_srv']
             
             # 要push到redis的数据
+            
             notify_queue = {
                 "order_id": order_id,
                 "fee": value,
                 "op_id": op_id,
-                "callback_url": kwargs["callback_url"],
+                "callback_url": callback_url,
                 "address": account,
-                "srv_private_key": ec_srv.private_key_str,
-                "cli_public_key": ec_cli.public_key_str
+                "srv_private_key": ec_srv.private_key_str.decode(),
+                "cli_public_key": ec_cli.public_key_str.decode()
             }
             notify_queue = json.dumps(notify_queue)
             redis_store.lpush("notify_queue", notify_queue)
