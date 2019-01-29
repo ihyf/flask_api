@@ -68,25 +68,36 @@ def transfer_contract_tool(data):
     
     if "get" not in func_name and "set" not in func_name:
         ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+        print(ss1)
         t_dict = eval(ss1)
+        print(t_dict)
         signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
         tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
         w3.eth.waitForTransactionReceipt(tx_hash)
-        
         result = {"info": "{} ok".format(func_name)}
         type = 1
         pay_gas = ""
     elif "set" in func_name:
-        s = f"""contract_instance.functions.{func_name}({func_param}).transact({{'from': '{account}', 'value': w3.toWei({value}, 'ether')}})"""
-        tx_hash = eval(s)
+        ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+        print(ss1)
+        t_dict = eval(ss1)
+        print(t_dict)
+        signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
+        tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
         w3.eth.waitForTransactionReceipt(tx_hash)
-        
+    
+        pay_gas = ""
         result = {"info": "set {} ok".format(func_name)}
         type = 1
         pay_gas = ""
     elif "get" in func_name:
-        result = eval("contract_instance.functions.{func_name}({func_param}).call()".
-                      format(func_name=func_name, func_param=func_param))
+        func_param = w3.toChecksumAddress(func_param)
+        ss = "contract_instance.functions.{func_name}('{func_param}').call()".format(func_name=func_name,
+                                                                                     func_param=func_param)
+        print(ss)
+        result = eval(ss)
+        print(result)
+    
         tx_hash = ""
         type = 2
         pay_gas = "0"
@@ -95,7 +106,7 @@ def transfer_contract_tool(data):
 
 def send_100_to_new_account(to_address):
     # 创建账户送100个币
-    keystore = {"address":"a53683641b86640e539f5224e3a062b10fe8c830","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"0be3e7461ab510e0a4a56bd3c55ba785"},"ciphertext":"94bd89d02f3bfee46e6634c15cba5ad2d4449daf03bd811780069cda880b5181","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"6446f4ef06f1c58794fc8aae631950b3"},"mac":"375e14236a14df9507ad0737a7b037b7e18051a2899edd6ee7092afc6af28eee"},"id":"6d8f91a9-f18d-4377-b590-49befcd8eb04","version":3}
+    keystore = {"address":"8a80d5366e28b1157e3aa99452a664846cfa0934","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"64c8387c7fecbf766a594f943952c2cd"},"ciphertext":"39c14d37f0bb4ea1fe7252a71089d375a2d6c2e188481c740b2969fdad0fd7a9","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"6071d213c82aae7672f79bf5556c55b3"},"mac":"f7f035687a9e90e9aeab978c7e1f2b07a88380ee00cb2dd9356cfd0841c4ae65"},"id":"a693ca7d-0cd7-476c-934f-225e3a5ae220","version":3}
     pwd = "hyf"
     private_key = Account.decrypt(json.dumps(keystore), pwd)
     account = Account.privateKeyToAccount(private_key)

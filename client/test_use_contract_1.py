@@ -59,34 +59,26 @@ Listening on 127.0.0.1:8545
 
 """
 "0xd87f9a8fe5e66cf3e1e06d8f6c4774fba4da372731dd2828186fe06aa373669f"
-a1 = "0x749cf919d06eedaf10262f75f04aa61839706ad3"
-a2 = "0xb7e8bce0c5343df3339705eabfe9d74681080ab9"
-a3 = "0x321743c06e0706f08807c63dc5704e3b81068589"
-a4 = "0x41f1dbfaade159590aa1a557e80e55c760c758c4"
+a1 = "0x2f22eff53d62ad4b1433de288c3abcc3021668f1"
+a2 = "0x9f931061882ff40c3d91d64bcccd3b1a9660430f"
+a3 = "0x2119f46f94bffdcdee2d0c8a0101c2dd269dcbd1"
+a4 = "0x3cd1dd1000638e383bae1dba304ad1ba097705f5"
 
-a0 = "0x274bfd5a0bde79655139b6f1876a5e93613cb3b0"
+a0 = "0xbb77bbdfe61713495fe3041b9783c51a07adae8a"
 "betting" "getRandom" "result"
-k0 ={'address': '274bfd5a0bde79655139b6f1876a5e93613cb3b0', 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': 'df903ff8132106d97976d9b959de5e2f'}, 'ciphertext': '58fb03cf68f95b61d3cda1bfc5db10ad653cac66cf518b670b87d08ae25d1cb7', 'kdf': 'pbkdf2', 'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256', 'salt': 'aa32da67afe61151054996ad29d5ba44'}, 'mac': '6b8ab5d768f734a36d1a664c1e46f0708892966836fb2034b498f674c3c9586d'}, 'id': 'b7cda100-a7fd-4478-ba70-c640ba7e1fbb', 'version': 3}
-k1 = {'address': '749cf919d06eedaf10262f75f04aa61839706ad3', 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': '7f72679d0861a7b67e42d6acc4915de3'}, 'ciphertext': 'db55e075dc3fc7d559e7b81d901187ef8be29681bf4b408c4b3222b69ba7d087', 'kdf': 'pbkdf2', 'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256', 'salt': 'ef3612453c68a7ad6fc467a55cd9421d'}, 'mac': '895c617aa1d437c9da2032c0e3fa63922cb836366b4dd025b5b6bceb35144700'}, 'id': 'e04eb32c-c4f9-4fb1-bfb7-f98de573eca9', 'version': 3}
-k2 = {'address': 'b7e8bce0c5343df3339705eabfe9d74681080ab9', 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': 'dba976c0b25b431bb69ac85b9c4bd2ed'}, 'ciphertext': 'efa46bef8196d792e9eba8d13b6147063adf078063ac560288949f4fe46d164d', 'kdf': 'pbkdf2', 'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256', 'salt': '033748b5fab51e726bc588908ec58258'}, 'mac': '3a9c8d155978b899c85eb267db30147cf059274a094af4d2c5009ec502396d44'}, 'id': 'a7c5d7e6-1fd4-425b-930c-6fd83ab933bd', 'version': 3}
-k3 = {'address': '321743c06e0706f08807c63dc5704e3b81068589', 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': '64021eb91132cd3a8787c5ea1cc4357f'}, 'ciphertext': '8f1e81821234e255a3a7b47bfd150eee674f371cf7e31f1648b99f3f4b2e5116', 'kdf': 'pbkdf2', 'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256', 'salt': '9daf44e20910daae997870e2d8f55210'}, 'mac': '5cea94db65aff83b101aa30d4e2d5bb7dcc0e2db7eb676f0ea3980cd09369de4'}, 'id': '805c1ad1-3e89-4b7e-87f8-c77dd3ec7920', 'version': 3}
-k4 = {'address': '41f1dbfaade159590aa1a557e80e55c760c758c4', 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': '23c9e0e1de117f5475643c0b65da6db4'}, 'ciphertext': 'ca4ff169b8101b66d65a9deb65ad4be2bf47be968816e3d000575194f94f134c', 'kdf': 'pbkdf2', 'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256', 'salt': '7e9a929fa864893429f38c958109cfdc'}, 'mac': 'be19395d1ce81d772bd03b4dfb7d94a708642195ca5a651abd0bd3bef2d5f29c'}, 'id': 'c85de2a6-5915-4be7-8eea-9597f1b98c21', 'version': 3}
-k_add = {"address":"974ee15eac43df137f0c7903738000ca50a79a76","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"08edd58428a266bb7246433d4ed44211"},"ciphertext":"c70a4e922d5f782598e9308454b1fa9908bc2fd0554f01b88c143e18f268a309","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"7a8ba1af237313958be4389a67a29e8a"},"mac":"1bec281a4893407367fdb409803750768c10621017110f47e77f686a70894329"},"id":"04afa9ec-f13f-42e5-a242-17ee251d5d25","version":3}
-k_add2 = {"address":"a51a9527f3398e2247e6c4aaa16ed71783d755ff","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"d0f81586c82370e545b7c7a8db444dba"},"ciphertext":"b648d320febac018e6e533573c5a3699e1290320229c08418846897120c3436a","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"6746a8c25910dcc0f1127c86b7971150"},"mac":"ad4afd82ac65bcb35064095720ac30e36f3beb4692fcd14aeb3e8aa212d81469"},"id":"bedbf8f4-153a-4a4b-a488-27aaa643535b","version":3}
 k_hyf = {"address":"a53683641b86640e539f5224e3a062b10fe8c830","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"0be3e7461ab510e0a4a56bd3c55ba785"},"ciphertext":"94bd89d02f3bfee46e6634c15cba5ad2d4449daf03bd811780069cda880b5181","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"6446f4ef06f1c58794fc8aae631950b3"},"mac":"375e14236a14df9507ad0737a7b037b7e18051a2899edd6ee7092afc6af28eee"},"id":"6d8f91a9-f18d-4377-b590-49befcd8eb04","version":3}
-keystore_poa_node1 = {"address":"3ff83cc121adae7953cc96c8fab1463c2756d4d6","crypto":{"cipher":"aes-128-ctr","ciphertext":"9159d08b6b72b26cb9aa0eb22776ad73f12444d1c333f1b77a6350497fbcf486","cipherparams":{"iv":"d073e228b007782f029f2f229c585ddc"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"5e1146850019085d042a7b660d6f6e99266e35d797a5e55d7402c263f4b96c9f"},"mac":"4301617ced915e9a22b5f93b937d8a61f4113a34615feb681cdb0f8a8db87b51"},"id":"e82ce4db-c07a-4959-8c8c-a0e17fd0d6ab","version":3}
 url_waiwang = "http://47.52.166.23:9000/api"
 "transfer_contract" "getNumPlayerArr"  "setChooseGame" "tBetting" "tResult" "getGameNum"
 payload = {
         "method": "transfer_contract",
         "params": {
-            "appid": "hyf_app",
+            "appid": "5cf3b187a7364d4adc7e8a86287bd5f0",
             "sign": "",
             "data": {
                 "func_name": "getBalance",
                 "func_param": "",
                 "value": "0",
-                "keystore": k_add,
+                "keystore": k_hyf,
                 "pwd": "hyf",
                 "time": time.time()
             }
@@ -96,13 +88,13 @@ payload = {
     }
 from cert.eth_certs import EthCert
 
-ec = EthCert("hyf_app")
+ec = EthCert("5cf3b187a7364d4adc7e8a86287bd5f0_cli")
 ec.load_key_from_file()
 ec.serialization()
 sign = ec.sign(payload["params"]["data"])
 payload["params"]["sign"] = sign.decode()
 
-ec1 = EthCert("hyf_srv")
+ec1 = EthCert("5cf3b187a7364d4adc7e8a86287bd5f0_srv")
 ec1.load_key_from_file()
 ec1.serialization()
 payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()

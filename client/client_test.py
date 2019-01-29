@@ -44,39 +44,40 @@ def main():
     keystore_hyf = {"address":"e05c112ca739671f014efc2e684b9ac96865d459","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"277c5a4cd33901350007c9c87670f293"},"ciphertext":"dd44c7257cb33b572827ef7e2c5cebb3bba538760a9b68d1ec34de00a45665c3","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"72a6ec62856d92f09a4510751dc19140"},"mac":"55c3f7be7cfd9d52f2bb37d9dda1356f7d252e08d4d809eb9cdf22f37c1e3318"},"id":"74b8a9b8-49c8-4b01-ae73-ac0a83a83c7e","version":3}
     keystore_poa_node1 = {"address":"3ff83cc121adae7953cc96c8fab1463c2756d4d6","crypto":{"cipher":"aes-128-ctr","ciphertext":"9159d08b6b72b26cb9aa0eb22776ad73f12444d1c333f1b77a6350497fbcf486","cipherparams":{"iv":"d073e228b007782f029f2f229c585ddc"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"5e1146850019085d042a7b660d6f6e99266e35d797a5e55d7402c263f4b96c9f"},"mac":"4301617ced915e9a22b5f93b937d8a61f4113a34615feb681cdb0f8a8db87b51"},"id":"e82ce4db-c07a-4959-8c8c-a0e17fd0d6ab","version":3}
     k_hyf = {"address":"a53683641b86640e539f5224e3a062b10fe8c830","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"0be3e7461ab510e0a4a56bd3c55ba785"},"ciphertext":"94bd89d02f3bfee46e6634c15cba5ad2d4449daf03bd811780069cda880b5181","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"6446f4ef06f1c58794fc8aae631950b3"},"mac":"375e14236a14df9507ad0737a7b037b7e18051a2899edd6ee7092afc6af28eee"},"id":"6d8f91a9-f18d-4377-b590-49befcd8eb04","version":3}
-    # payload = {
-    #     "method": "create_account",
-    #     "params": {
-    #         "appid": "hyf_app",
-    #         "sign": "",
-    #         "data": {
-    #             "pwd": "hyf",
-    #             "time": time.time()
-    #         }
-    #     },
-    #     "jsonrpc": "2.0",
-    #     "id": 0
-    # }
+    payload = {
+        "method": "create_account",
+        "params": {
+            "appid": "hyf_app",
+            "sign": "",
+            "data": {
+                "pwd": "hyf",
+                "time": time.time()
+            }
+        },
+        "jsonrpc": "2.0",
+        "id": 0
+    }
+    k8 = {'address': '3af1ee88d8e3987294073896c5bf6cf07474de74', 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': 'dabb2bbd3511c19bcc19bf4b26811c41'}, 'ciphertext': '4443b3df9d0f642c062cd66b74a830e62830f3b9ea9ec64ec097641f2f50ee5c', 'kdf': 'pbkdf2', 'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256', 'salt': '542004944fcff3605f0843f983921f76'}, 'mac': '86b824bc2e8262fa488db35b126dcccea1163f04964d9de404266a2cad6223f5'}, 'id': 'bb63bb14-627c-4a17-bdcb-2b32ae214185', 'version': 3}
     gas_price = w3.eth.gasPrice
     print(gas_price)
-    # payload = {
-    #     "method": "send_transaction",
-    #     "params": {
-    #         "appid": "hyf_app",
-    #         "sign": "",
-    #         "data": {
-    #             "to_address": "0x3281bD613CeAB444cfa36720552C65F6eC801Bc8",
-    #             "value": 1,
-    #             "gas_limit": 40000,
-    #             "gas_price": gas_price,
-    #             "pwd": "123456",
-    #             "keystore": keystore_poa_node1,
-    #             "time": time.time()
-    #         }
-    #     },
-    #     "jsonrpc": "2.0",
-    #     "id": 0
-    # }
+    payload = {
+        "method": "send_transaction",
+        "params": {
+            "appid": "hyf_app",
+            "sign": "",
+            "data": {
+                "to_address": "0x8a80D5366E28B1157E3aA99452a664846Cfa0934",
+                "value": 999999999,
+                "gas_limit": 40000,
+                "gas_price": gas_price,
+                "pwd": "hyf",
+                "keystore": k8,
+                "time": time.time()
+            }
+        },
+        "jsonrpc": "2.0",
+        "id": 0
+    }
     # payload = {
     #     "method": "import_private_key",
     #     "params": {
@@ -107,20 +108,20 @@ def main():
 #     "jsonrpc": "2.0",
 #     "id": ""
 # }
-    payload = {
-        "method": "get_balance",
-        "params": {
-            "appid": "hyf_app",
-            "sign": "",
-            "data": {
-                "address": ["0x5A93701FFe1F9D99C3D3d9c935F004dc5d7B5161",
-                            "0x5A93701FFe1F9D99C3D3d9c935F004dc5d7B5161"],
-                "time": time.time()
-            }
-        },
-        "jsonrpc": "2.0",
-        "id": 0
-    }
+#     payload = {
+    # #         "method": "get_balance",
+    # #         "params": {
+    # #             "appid": "hyf_app",
+    # #             "sign": "",
+    # #             "data": {
+    # #                 "address": ["0x749cf919d06eedaf10262f75f04aa61839706ad3",
+    # #                             "0x749cf919d06eedaf10262f75f04aa61839706ad3"],
+    # #                 "time": time.time()
+    # #             }
+    # #         },
+    # #         "jsonrpc": "2.0",
+    # #         "id": 0
+    # #     }
 #     payload = {
 #     "method": "get_all_transaction",
 #     "params": {
@@ -150,7 +151,7 @@ def main():
     payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
     for i in range(1):
         response = requests.post(
-            url, data=json.dumps(payload), headers=headers).json()
+            url_waiwang, data=json.dumps(payload), headers=headers).json()
 
     print(response)
     ddata = ec.decrypt(response["result"]["data"])

@@ -1123,10 +1123,10 @@ URL:{baseurl}/api
         "appid": "hyf_app",
         "sign": "",
         "data": {
-            "account": "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1",
-            "contract_name": "luckyNumber",
             "func_name": "getbonusMoney",
             "func_param": "",
+            "keystore": "",
+            "pwd": "",
             "value": 2,
             "time": 123000
         }

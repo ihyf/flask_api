@@ -28,12 +28,10 @@ def transfer_contract(*args, **kwargs):
     # 调用合约公共接口
     appid = kwargs["appid"]
     data = kwargs['decrypt']
-    necessary_keys = ["account", "contract_name", "func_name",
-                      "func_param", "keystore", "pwd"]
+    master_contract_address = kwargs["master_contract_address"]
+    necessary_keys = ["func_name"]
     check = check_kv(data, necessary_keys)
     if check == "Success":
-        account = data.get("account", None)
-        # contract_name = data.get("contract_name", None)
         func_name = data.get("func_name", None)
         func_param = data.get("func_param", None)
         value = data.get("value", None)
@@ -41,29 +39,30 @@ def transfer_contract(*args, **kwargs):
         pwd = data.get("pwd", None)
 
         session = db_manager.master()
-        app = session.query(Apps).filter(Apps.appid == appid).one()
-        if app:
-            master_contract_address = app.master_contract_address[0]
+        try:
             dc = session.query(DeployContracts). \
                 filter(DeployContracts.master_contract_address == master_contract_address). \
                 order_by(desc(DeployContracts.id)).first()
             contract_name = dc.contract_name
             contract_address = dc.contract_address
-        else:
-            return {"code": "fail", "error": "this app no master_contract_address"}
+        except Exception as e:
+            return {"code": "fail", "error": "no this DeployContracts"}
 
         with open("json_files/data_{}.json".format(contract_name), 'r') as f:
             datastore = json.load(f)
         abi = datastore["abi"]
         contract_address = datastore["contract_address"]
         contract_instance = w3.eth.contract(address=contract_address, abi=abi)
-        account = w3.toChecksumAddress(account)
-        nonce = w3.eth.getTransactionCount(account)
-        private_key = Account.decrypt(json.dumps(keystore), pwd)
-        account_instance = Account.privateKeyToAccount(private_key)
-
+        if keystore and pwd:
+            private_key = Account.decrypt(json.dumps(keystore), pwd)
+            account_instance = Account.privateKeyToAccount(private_key)
+            account = account_instance.address
+            account = w3.toChecksumAddress(account)
+            nonce = w3.eth.getTransactionCount(account)
+            
         if "get" not in func_name and "set" not in func_name:
             ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+            print(ss1)
             t_dict = eval(ss1)
             print(t_dict)
             signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
@@ -72,20 +71,42 @@ def transfer_contract(*args, **kwargs):
             result = {"info": "{} ok".format(func_name)}
             type = 1
             pay_gas = ""
+
         elif "set" in func_name:
-            s = f"""contract_instance.functions.{func_name}({func_param}).transact({{'from': '{account}', 'value': w3.toWei({value}, 'ether')}})"""
-            tx_hash = eval(s)
+            # s = f"""contract_instance.functions.{func_name}({func_param}).transact({{'from': '{account}', 'value': w3.toWei({value}, 'ether')}})"""
+            # tx_hash = eval(s)
+            # w3.eth.waitForTransactionReceipt(tx_hash)
+            #
+            # result = {"info": "set {} ok".format(func_name)}
+            # type = 1
+            # pay_gas = ""
+            
+            
+            ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+            print(ss1)
+            t_dict = eval(ss1)
+            print(t_dict)
+            signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
+            tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
             w3.eth.waitForTransactionReceipt(tx_hash)
 
+            pay_gas = ""
             result = {"info": "set {} ok".format(func_name)}
             type = 1
             pay_gas = ""
+
         elif "get" in func_name:
-            result = eval("contract_instance.functions.{func_name}({func_param}).call()".
-                          format(func_name=func_name, func_param=func_param))
+            func_param = w3.toChecksumAddress(func_param)
+            ss = "contract_instance.functions.{func_name}('{func_param}').call()".format(func_name=func_name,
+                                                                                         func_param=func_param)
+            print(ss)
+            result = eval(ss)
+            print(result)
+    
             tx_hash = ""
             type = 2
             pay_gas = "0"
+
         # 插入数据库
         try:
             session = db_manager.master()
