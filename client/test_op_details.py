@@ -11,14 +11,14 @@ headers = {"content-type": "application/json"}
 url_waiwang = "http://47.52.166.23:9000/api"
 
 payload = {
-        "method": "op_details",
+        "method": "op_details_fordapp",
         "jsonrpc": "2.0",
         "id": "0",
         "params": {
             "appid": "hyf_app",
             "sign": "",
             "data": {
-                "op_id": "101",
+                "op_id": "225",
                 "time": time.time()
             }
         }

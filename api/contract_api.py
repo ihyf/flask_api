@@ -80,12 +80,18 @@ def transfer_contract(*args, **kwargs):
             # result = {"info": "set {} ok".format(func_name)}
             # type = 1
             # pay_gas = ""
+            # 临时
+            func_param = func_param.split(",")
+            address = w3.toChecksumAddress(func_param[0])
+            num1 = func_param[1]
+            num2 = func_param[2]
             
-            
-            ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+            ss1 = f"""contract_instance.functions.{func_name}('{address}',{num1}, {num2}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+            ss2 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
             print(ss1)
             t_dict = eval(ss1)
             print(t_dict)
+            # 临时
             signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
             tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
             w3.eth.waitForTransactionReceipt(tx_hash)
@@ -366,7 +372,9 @@ def transfer_nopay_op(*args, **kwargs):
                 "func_name": func_name,
                 "func_param": func_param,
                 "value": value,
-                "callback_url": callback_url
+                "callback_url": callback_url,
+                "address": "",
+                "appid": appid
             }
             # op_time = time.strftime("%Y-%m-%d %X", time.localtime())
             op_time = get_srv_time()
@@ -444,6 +452,8 @@ def pay_transfer_op(*args, **kwargs):
             func_name = op.op_info.get("func_name")
             func_param = op.op_info.get("func_param")
             value = op.op_info.get("value")
+            appid = op.op_info.get("appid")
+            app = session.query(Apps).filter(Apps.appid == appid).one()
             callback_url = op.op_info.get("callback_url")
             order_id = op.order_id
             data = {
@@ -461,15 +471,24 @@ def pay_transfer_op(*args, **kwargs):
             type = result_list[3]
             account = result_list[4]
             op_time = get_srv_time()
-
+            
             op.tx_hash = tx_hash
             op.pay_gas = pay_gas
             op.op_time = op_time
+            op_info = {
+                "func_name": func_name,
+                "func_param": func_param,
+                "value": value,
+                "callback_url": callback_url,
+                "address": account,
+                "appid": appid
+            }
+            op.op_info = op_info
             op.type = type
             
             session.commit()
             session.close()
-            
+
             ec_cli = kwargs['ec_cli']
             ec_srv = kwargs['ec_srv']
             
@@ -481,8 +500,8 @@ def pay_transfer_op(*args, **kwargs):
                 "op_id": op_id,
                 "callback_url": callback_url,
                 "address": account,
-                "srv_private_key": ec_srv.private_key_str.decode(),
-                "cli_public_key": ec_cli.public_key_str.decode()
+                "srv_private_key": app.srv_privatekey,
+                "cli_public_key": app.cli_publickey
             }
             notify_queue = json.dumps(notify_queue)
             redis_store.lpush("notify_queue", notify_queue)
@@ -490,6 +509,35 @@ def pay_transfer_op(*args, **kwargs):
             sign = ec_srv.sign(result).decode()
             result = ec_cli.encrypt(result).decode()
     
+            return {
+                "code": "success",
+                "sign": sign,
+                "data": result
+            }
+        except Exception as e:
+            return {"code": "fail", "error": f"{e}"}
+    else:
+        return {"code": "fail", "error": check}
+
+
+@api_add
+@check_conn(request)
+def op_details_fordapp(*args, **kwargs):
+    # 操作详情 dapp查询订单接口
+    data = kwargs['decrypt']
+    necessary_keys = ["op_id"]
+    check = check_kv(data, necessary_keys)
+    if check == "Success":
+        try:
+            op_id = data.get("op_id")
+            session = db_manager.slave()
+            op = session.query(ContractOp).filter(ContractOp.op_id == op_id).one()
+            result = {"op_info": op.op_info, "order_id": op.order_id, "type": op.type}
+            ec_cli = kwargs['ec_cli']
+            ec_srv = kwargs['ec_srv']
+            sign = ec_srv.sign(result).decode()
+            result = ec_cli.encrypt(result).decode()
+
             return {
                 "code": "success",
                 "sign": sign,

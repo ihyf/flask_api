@@ -77,16 +77,19 @@ k_hyf = {"address":"a53683641b86640e539f5224e3a062b10fe8c830","crypto":{"cipher"
 keystore_poa_node1 = {"address":"3ff83cc121adae7953cc96c8fab1463c2756d4d6","crypto":{"cipher":"aes-128-ctr","ciphertext":"9159d08b6b72b26cb9aa0eb22776ad73f12444d1c333f1b77a6350497fbcf486","cipherparams":{"iv":"d073e228b007782f029f2f229c585ddc"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"5e1146850019085d042a7b660d6f6e99266e35d797a5e55d7402c263f4b96c9f"},"mac":"4301617ced915e9a22b5f93b937d8a61f4113a34615feb681cdb0f8a8db87b51"},"id":"e82ce4db-c07a-4959-8c8c-a0e17fd0d6ab","version":3}
 url_waiwang = "http://47.52.166.23:9000/api"
 "transfer_contract" "getNumPlayerArr"  "setChooseGame" "tBetting" "tResult" "getGameNum"
+
+
+k_pingtai = {'address': 'a107a8cef11aee3b2e24f59b5e8218c559ba2b72', 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': 'ae48d496c8e471193d3b0a1c9ba43998'}, 'ciphertext': '94c1e2e863e04c18ae5828000787d63c276c3e3342a10a0b0754f23c0d1552bb', 'kdf': 'pbkdf2', 'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256', 'salt': '7cbba41298cba5cb81b6752155ffcaa6'}, 'mac': 'b945f5241a32d66132f1332963acdbc400247da0ec688cea8493a08ae3ad12c5'}, 'id': '9a1a7b53-2f25-4bde-966c-f1735d379109', 'version': 3}
 payload = {
         "method": "transfer_contract",
         "params": {
-            "appid": "hyf_app",
+            "appid": "c951311c68e15b0918470031d80829ec",
             "sign": "",
             "data": {
-                "func_name": "getBalance",
+                "func_name": "tSaveMoney",
                 "func_param": "",
-                "value": "0",
-                "keystore": k_add,
+                "value": "900000000",
+                "keystore": k_pingtai,
                 "pwd": "hyf",
                 "time": time.time()
             }
@@ -96,13 +99,13 @@ payload = {
     }
 from cert.eth_certs import EthCert
 
-ec = EthCert("hyf_app")
+ec = EthCert("c951311c68e15b0918470031d80829ec_cli")
 ec.load_key_from_file()
 ec.serialization()
 sign = ec.sign(payload["params"]["data"])
 payload["params"]["sign"] = sign.decode()
 
-ec1 = EthCert("hyf_srv")
+ec1 = EthCert("c951311c68e15b0918470031d80829ec_srv")
 ec1.load_key_from_file()
 ec1.serialization()
 payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
