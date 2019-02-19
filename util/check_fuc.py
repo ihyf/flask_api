@@ -106,7 +106,7 @@ def transfer_contract_tool(data):
 
 def send_100_to_new_account(to_address):
     # 创建账户送100个币
-    keystore = {"address":"8a80d5366e28b1157e3aa99452a664846cfa0934","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"64c8387c7fecbf766a594f943952c2cd"},"ciphertext":"39c14d37f0bb4ea1fe7252a71089d375a2d6c2e188481c740b2969fdad0fd7a9","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"6071d213c82aae7672f79bf5556c55b3"},"mac":"f7f035687a9e90e9aeab978c7e1f2b07a88380ee00cb2dd9356cfd0841c4ae65"},"id":"a693ca7d-0cd7-476c-934f-225e3a5ae220","version":3}
+    keystore = {'address': '564871bc2f5768abd302b8631398cca4626af875', 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': '5d4e943bf44ca9e8fe3ca65169a652df'}, 'ciphertext': '07e8f166927a04b56c0b053c56ffac87a92dddf6b5809f1e01465e4af61566c4', 'kdf': 'pbkdf2', 'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256', 'salt': '3d0b73826b081a7109d34b91878a1d52'}, 'mac': 'fd2beb020a8f1ca3f53fd72f8c8b1f253ae22b03a3bd9d3a3e9c20499cd9f817'}, 'id': '593880ec-8713-42af-a060-92be55cf5fdd', 'version': 3}
     pwd = "hyf"
     private_key = Account.decrypt(json.dumps(keystore), pwd)
     account = Account.privateKeyToAccount(private_key)
@@ -141,4 +141,14 @@ def send_100_to_new_account(to_address):
         except Exception as e:
             return {"code": "fail", "error": f"{e}"}
 
+
+def format_func_param(func_param):
+    func_param = func_param.split(",")
+    t = []
+    for f in func_param:
+        if isinstance(f, str) and "0x" in f:
+            f = "'" + w3.toChecksumAddress(f) + "'"
+        t.append(f)
+    func_param = ",".join(t)
+    return func_param
 

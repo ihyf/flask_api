@@ -81,7 +81,7 @@ payload = {
             "appid": "hyf_app",
             "sign": "",
             "data": {
-                "master_contract_name": "hyf_master_201901281623",
+                "master_contract_name": "hyf_master_201901301605",
                 "time": time.time()
             }
         },
@@ -103,7 +103,7 @@ payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
 
 for i in range(1):
     response = requests.post(
-        url, data=json.dumps(payload), headers=headers).json()
+        url_waiwang, data=json.dumps(payload), headers=headers).json()
 
 print(response)
 ddata = ec.decrypt(response["result"]["data"])

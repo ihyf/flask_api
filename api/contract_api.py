@@ -11,7 +11,7 @@ from flask import request
 from cert.eth_checkout import check_conn
 from my_dispatcher import api_add, api
 from util.compile_solidity_utils import w3
-from util.check_fuc import check_kv, get_srv_time
+from util.check_fuc import check_kv, get_srv_time, format_func_param
 from util.compile_solidity_utils import deploy_n_transact
 from util.mysql_db import db_manager, DeployContracts, ContractOp, Apps
 from util.dbmanager import db_manager
@@ -61,9 +61,11 @@ def transfer_contract(*args, **kwargs):
             nonce = w3.eth.getTransactionCount(account)
             
         if "get" not in func_name and "set" not in func_name:
-            ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
-            print(ss1)
-            t_dict = eval(ss1)
+            #s1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+            func_param = format_func_param(func_param)
+            s1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+            print(s1)
+            t_dict = eval(s1)
             print(t_dict)
             signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
             tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
@@ -81,17 +83,19 @@ def transfer_contract(*args, **kwargs):
             # type = 1
             # pay_gas = ""
             # 临时
-            func_param = func_param.split(",")
-            address = w3.toChecksumAddress(func_param[0])
-            num1 = func_param[1]
-            num2 = func_param[2]
-            
-            ss1 = f"""contract_instance.functions.{func_name}('{address}',{num1}, {num2}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
-            ss2 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
-            print(ss1)
-            t_dict = eval(ss1)
-            print(t_dict)
+            # func_param = func_param.split(",")
+            # address = w3.toChecksumAddress(func_param[0])
+            # num1 = func_param[1]
+            # num2 = func_param[2]
+            #
+            # ss1 = f"""contract_instance.functions.{func_name}('{address}',{num1}, {num2}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+            # print(ss1)
+            # t_dict = eval(ss1)
+            # print(t_dict)
             # 临时
+            func_param = format_func_param(func_param)
+            s2 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+            t_dict = eval(s2)
             signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
             tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
             w3.eth.waitForTransactionReceipt(tx_hash)
@@ -102,11 +106,14 @@ def transfer_contract(*args, **kwargs):
             pay_gas = ""
 
         elif "get" in func_name:
-            func_param = w3.toChecksumAddress(func_param)
-            ss = "contract_instance.functions.{func_name}('{func_param}').call()".format(func_name=func_name,
+            # func_param = w3.toChecksumAddress(func_param)
+            # ss = "contract_instance.functions.{func_name}('{func_param}').call()".format(func_name=func_name,
+            #                                                                              func_param=func_param)
+            func_param = format_func_param(func_param)
+            s3 = "contract_instance.functions.{func_name}({func_param}).call()".format(func_name=func_name,
                                                                                          func_param=func_param)
-            print(ss)
-            result = eval(ss)
+            print(s3)
+            result = eval(s3)
             print(result)
     
             tx_hash = ""
@@ -161,8 +168,9 @@ def generate_contrants_md(*args, **kwargs):
                     data = json.loads(f.read())
                     abi = data.get("abi", None)
                     contract_address = data.get("contract_address", None)
-                f_name = f_name.split(".")[0].split("_")[1]
-                cf.write("# 合约名: " + f_name + "\n")
+                # f_name = f_name.split(".")[0].split("_")[1]
+                show_f_name = f_name.split(".")[0]
+                cf.write("# 合约名: " + show_f_name + "\n")
                 cf.write("\n")
                 cf.write("# 合约地址: " + contract_address + "\n")
                 cf.write("\n")

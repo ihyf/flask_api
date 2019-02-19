@@ -20,7 +20,10 @@ def check_conn(request):
                 return {"code": "fail", "error": "data format error!"}
             # 哈希data数据，限制多次请求的问题
             sha1 = hashlib.sha1()
-            sha1.update(kw['sign'].encode())
+            try:
+                sha1.update(kw['sign'].encode())
+            except:
+                return {"code": "fail", "error": "sign data error!"}
             this_hash = sha1.hexdigest()
             faster_rc = "checkout_{0}_rfaster".format(kw['appid'])
             try:
@@ -37,6 +40,10 @@ def check_conn(request):
             keystatus, res_kes = get_keys(kw['appid'])
             if keystatus is not True:
                 return res_kes
+            # status
+            # 0启用  1停用  2未授权
+            if res_kes['status'] != 0:
+                return {"code": "fail", "error": "status: %d" % res_kes['status']}
             # srv
             if request.is_json is False:
                 # 要求Content-Type为：application/json
@@ -103,6 +110,7 @@ def check_conn(request):
             kw['ec_srv'] = ec_srv
             kw['callback_url'] = res_kes['callback_url']
             kw["master_contract_address"] = res_kes["master_contract_address"]
+            kw["status"] = res_kes["status"]
             return func(*args, **kw)
         return wrapper
     return decorator
@@ -120,6 +128,7 @@ def delete_checkout_redis(appid):
         pkeys["checkout_mc_address"],
         pkeys["checkout_wallet_addr"],
         pkeys["checkout_callback_url"],
+        pkeys["checkout_status"],
     )
 
 
@@ -134,6 +143,7 @@ def product_keys(appid):
         "checkout_mc_address": "checkout_{0}_mcaddress".format(appid),
         "checkout_wallet_addr": "checkout_{0}_waaddress".format(appid),
         "checkout_callback_url": "checkout_{0}_callback".format(appid),
+        "checkout_status": "checkout_{0}_status".format(appid),
     }
     return pkeys
 
@@ -147,7 +157,8 @@ def get_keys(appid):
         "srv": None,
         "master_contract_address": None,
         "wallet": None,
-        "callback_url": None
+        "callback_url": None,
+        "status": None,
     }
     if redis_store.exists(pkeys["checkout_keys"]) == 0:
         session = db_manager.slave()
@@ -180,6 +191,7 @@ def get_keys(appid):
         res_kes["master_contract_address"] = app.master_contract_address
         res_kes["wallet"] = app.wallet
         res_kes["callback_url"] = app.callback_url
+        res_kes["status"] = app.status
         if res_kes["ns"]:
             redis_store.rpush(pkeys["checkout_ns"], *res_kes["ns"])
         if res_kes["ip"]:
@@ -192,6 +204,7 @@ def get_keys(appid):
             redis_store.set(pkeys["checkout_wallet_addr"], res_kes["wallet"])
         if res_kes["callback_url"]:
             redis_store.set(pkeys["checkout_callback_url"], res_kes["callback_url"])
+        redis_store.set(pkeys["checkout_status"], res_kes["status"])
         redis_store.set(pkeys["checkout_update"], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     else:
         res_kes["keys"] = redis_store.lrange(pkeys["checkout_keys"], 0, 3)
@@ -201,6 +214,7 @@ def get_keys(appid):
         res_kes["master_contract_address"] = redis_store.lrange(pkeys["checkout_mc_address"], 0, -1)
         res_kes["wallet"] = redis_store.get(pkeys["checkout_wallet_addr"])
         res_kes["callback_url"] = redis_store.get(pkeys["checkout_callback_url"])
+        res_kes["status"] = int(redis_store.get(pkeys["checkout_status"]))
     return True, res_kes
 
 

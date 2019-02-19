@@ -90,9 +90,9 @@ class DianDian(object):
             "ip": ["192.168.1.0/255.255.255.0", "192.168.1.2", "127.0.0.1", '192.168.1.77'],
             "ns": ["localhost", "127.0.0.1", "192.168.1.77"],
             "srv": [],
-            "master_contract_address": ["A"*100000],
+            "master_contract_address": ["A"],
             "wallet": "wallet address",
-            "callback_url": "callback_url xxxxxxxxxxxx",
+            "callback_url": "http://www.aa.com/",
             "status": 0,
             "time": time.time()
         }

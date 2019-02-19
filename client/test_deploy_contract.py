@@ -135,8 +135,8 @@ payload = {
             "data": {
                 "contract_name": "luckyNumber",
                 "url": parse.quote("http://192.168.1.11:82/upload/luckyNumber.sol"),
-                "master_contract_name": "hyf_master_201901241629",
-                "master_contract_address": "0xD9f3C2f315b70059abfAA51ba887af73029F4C13",
+                "master_contract_name": "hyf_master_201901301605",
+                "master_contract_address": "0x31d1269d80b4876DEa3df08cBD1959E147074692",
                 "time": time.time()
             },
             "no_decrypt": "no_decrypt"
@@ -156,10 +156,10 @@ ec1 = EthCert("syncapp")
 ec1.load_key_from_file()
 ec1.serialization()
 # payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
-
+url_waiwang = "http://47.52.166.23:9000/api"
 for i in range(1):
     response = requests.post(
-        url, data=json.dumps(payload), headers=headers).json()
+        url_waiwang, data=json.dumps(payload), headers=headers).json()
 print(response)
 ddata = ec.decrypt(response["result"]["data"])
 print(ddata)

@@ -70,17 +70,18 @@ url_waiwang = "http://47.52.166.23:9000/api"
 "transfer_contract" "getNumPlayerArr"  "setChooseGame" "tBetting" "tResult" "getGameNum"
 
 k = {"address":"7da035166ec65a73224867c9721179024d54406c","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"88ff7fa6e73a57b819231627ff58ef2e"},"ciphertext":"aa93a6e0d0e6093a44185579137d3436ff5ed2075412839bbccd589ee2860469","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"1eca57161df5ad13d51b2d28b4a8b6af"},"mac":"5ad3460a7de09ffb7df3253f432001c02f62921c4ead93a7d85199617ec1145b"},"id":"303725d9-9926-43fd-b6dd-547aa594b386","version":3}
-k_0 ={'address': 'a107a8cef11aee3b2e24f59b5e8218c559ba2b72', 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': '126fa921167224cbd0dfba5273d66925'}, 'ciphertext': 'e40969c5d00c33acbe853cc0dc8edaecdf51a66a96e0dd50e6b474e1f114e77a', 'kdf': 'pbkdf2', 'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256', 'salt': '852e9c8846e3edf35b40bba1b1c9f6a7'}, 'mac': '6a74b62ce14a5de9143d7346719614176aa6824e21652e5cd49abda58ca64bfc'}, 'id': '0f259902-5598-4df3-ab0c-382831a35855', 'version': 3}
+k_0 = {'address': 'cddd1a4d1c811e9ef5fa392266de98022107583f', 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': '64515c130f765d2d745e23cd43214c8e'}, 'ciphertext': 'f8f6869612819db27a8109e344c849cee048033e131ddb347f00177eb7736d08', 'kdf': 'pbkdf2', 'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256', 'salt': 'f12b533c4d005381ed67b09b49f1ef55'}, 'mac': '1141f601fb125dafff5d3a1fba63b197cad94e95a266cebbedcccde0f2b0327d'},  'version': 3}
+k_0_bak = {'address': 'cddd1a4d1c811e9ef5fa392266de98022107583f', 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': '64515c130f765d2d745e23cd43214c8e'}, 'ciphertext': 'f8f6869612819db27a8109e344c849cee048033e131ddb347f00177eb7736d08', 'kdf': 'pbkdf2', 'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256', 'salt': 'f12b533c4d005381ed67b09b49f1ef55'}, 'mac': '1141f601fb125dafff5d3a1fba63b197cad94e95a266cebbedcccde0f2b0327d'}, 'id': '9a173bb2-8427-4a4b-a8e6-6023dd361e43', 'version': 3}
 payload = {
         "method": "transfer_contract",
         "params": {
-            "appid": "c951311c68e15b0918470031d80829ec",
+            "appid": "dfe5f60fa172245e5e285f20bbc2509d",
             "sign": "",
             "data": {
-                "func_name": "getPlay",
-                "func_param": "0x7da035166ec65a73224867c9721179024d54406c",
-                "value": "0",
-                "keystore": k,
+                "func_name": "tSaveMoney",
+                "func_param": "",
+                "value": "1",
+                "keystore": k_0,
                 "pwd": "hyf",
                 "time": time.time()
             }
@@ -90,14 +91,14 @@ payload = {
     }
 from cert.eth_certs import EthCert
 
-ec = EthCert("c951311c68e15b0918470031d80829ec_cli")
+ec = EthCert("dfe5f60fa172245e5e285f20bbc2509d_cli")
 ec.load_key_from_file()
 ec.serialization()
 sign = ec.sign(payload["params"]["data"])
 print(sign)
 payload["params"]["sign"] = sign.decode()
 
-ec1 = EthCert("c951311c68e15b0918470031d80829ec_srv")
+ec1 = EthCert("dfe5f60fa172245e5e285f20bbc2509d_srv")
 ec1.load_key_from_file()
 ec1.serialization()
 payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
