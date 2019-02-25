@@ -9,6 +9,7 @@ from util.dbmanager import db_manager
 from util.db_redis import redis_store
 from util.mysql_db import Apps
 from cert.eth_certs import EthCert
+from config import API_TRUST_DOMAIN
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 
@@ -70,13 +71,15 @@ def check_conn(request):
                     real_host = request.host[:request.host.rfind(":")]
             else:
                 real_host = request.host
-            ns_re = '(' + '|'.join(res_kes["ns"]) + ')$'
-            ns_re = ns_re.replace(".", "\.").replace("*", ".*?").replace('[', '\[').replace(']', '\]')
-            try:
-                if not re.match(ns_re, real_host, re.I):
-                    return {"code": "fail", "error": f"illegal domain request: {real_host}"}
-            except Exception as e:
-                return {"code": "fail", "error": f"match domain error: {e}"}
+            if real_host != API_TRUST_DOMAIN:
+                # 可能会出现域名替换的问题
+                ns_re = '(' + '|'.join(res_kes["ns"]) + ')$'
+                ns_re = ns_re.replace(".", "\.").replace("*", ".*?").replace('[', '\[').replace(']', '\]')
+                try:
+                    if not re.match(ns_re, real_host, re.I):
+                        return {"code": "fail", "error": f"illegal domain request: {real_host}"}
+                except Exception as e:
+                    return {"code": "fail", "error": f"match domain error: {e}"}
             # 客户端
             ec_cli = EthCert()
             ec_cli.init_key(public_key_str=res_kes["keys"][0], private_key_str=res_kes["keys"][1])

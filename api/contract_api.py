@@ -56,8 +56,9 @@ def transfer_contract(*args, **kwargs):
         if keystore and pwd:
             private_key = Account.decrypt(json.dumps(keystore), pwd)
             account_instance = Account.privateKeyToAccount(private_key)
-            account = account_instance.address
-            account = w3.toChecksumAddress(account)
+            address = account_instance.address
+            account = w3.toChecksumAddress(address)
+            print(account)
             nonce = w3.eth.getTransactionCount(account)
             
         if "get" not in func_name and "set" not in func_name:
@@ -174,29 +175,41 @@ def generate_contrants_md(*args, **kwargs):
                 cf.write("\n")
                 cf.write("# 合约地址: " + contract_address + "\n")
                 cf.write("\n")
+                cf.write("函数名|参数名|参数类型|返回|返回类型|说明")
+                cf.write("\n")
+                cf.write(":--:|:--:|:--:|:--:|:--:|:--")
                 for t in abi:
+                    cf.write("\n")
                     if t["type"] == "function":
                         s_func = t["name"]
                         s_input = [it for it in t["inputs"]]
                         s_input1 = [it['name'] for it in t["inputs"]]
                         s_func = s_func + "(" + ','.join(s_input1) + ")"
                         s_return = t["outputs"]
-                        cf.write("## " + s_func + "\n")
+                        cf.write(s_func + "|")
                         if s_input:
-                            cf.write("参数类型:" + "\n")
-                            cf.write("\n")
+                            name_l = []
+                            type_l = []
                             for i in s_input:
-                                cf.write(i['name'] + "--->" + i['type'] + "\n")
-                                cf.write("\n")
-                        
-                        if s_return:
-                            cf.write("返回值:" + "\n")
-                            cf.write("\n")
-                            for i in s_return:
-                                cf.write(i['type'] + "\n")
-                        
+                                name_l.append(i["name"])
+                                type_l.append(i["type"])
+                            cf.write(",".join(name_l) + "|")
+                            cf.write(",".join(type_l) + "|")
                         else:
-                            cf.write("返回值: 无" + "\n")
+                            cf.write("无" + "|")
+                            cf.write("无" + "|")
+                        if s_return:
+                            name_l = []
+                            type_l = []
+                            for i in s_return:
+                                name_l.append(i["name"])
+                                type_l.append(i["type"])
+                            cf.write(",".join(name_l) + "|")
+                            cf.write(",".join(type_l) + "|")
+                
+                        else:
+                            cf.write("无" + "|")
+                            cf.write("无" + "|")
         return {"data": "ok"}
     
 

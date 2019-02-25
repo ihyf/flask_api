@@ -50,6 +50,8 @@ class Accounts(Base):
     balance = Column(String(20))
     create_time = Column(String(20))
     type = Column(String(10))
+    # 到账提醒 1为有新到账
+    arrival_reminder = Column(Integer, default=0)
     
 
 class TransactionRecord(Base):
@@ -114,6 +116,7 @@ class ContractOp(Base):
     order_id = Column(String(100))
     pay_gas = Column(String(50))
     type = Column(Integer, default=0)  # 2为无需支付 1为已支付 0为初始态 -1为失效
+    op_appid = Column(String(100))  # 调用方的appid
     
     
 def create_tables():

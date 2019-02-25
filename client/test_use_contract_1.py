@@ -78,9 +78,9 @@ payload = {
             "appid": "dfe5f60fa172245e5e285f20bbc2509d",
             "sign": "",
             "data": {
-                "func_name": "tSaveMoney",
-                "func_param": "",
-                "value": "1",
+                "func_name": "setRefund",
+                "func_param": "0x6a98047F56BE2F599B56805F02FDad6b387C74C9",
+                "value": "0",
                 "keystore": k_0,
                 "pwd": "hyf",
                 "time": time.time()

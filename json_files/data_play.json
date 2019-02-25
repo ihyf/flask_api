@@ -6,6 +6,10 @@
                 {
                     "name": "_guess",
                     "type": "bool"
+                },
+                {
+                    "name": "xxx",
+                    "type": "bool"
                 }
             ],
             "name": "betting",

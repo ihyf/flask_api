@@ -63,26 +63,27 @@ def main():
     
     k_create_account_to_new_100 = {"address":"8a47c8aadbbe059ed1fa26224678ee06b46c4c82","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"a6e3caaa6cc10470eb0cedcc4f3568b6"},"ciphertext":"54f7bbb940ba31fd58640d929b282ab30bd14fb2ad528f34f07be635b3c4cba1","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"be89b5c10e32de78c4743854ee6e66e0"},"mac":"ab9acf1f49d97c38ec63b7719cec8185a1f8bd6544248ee5c599ca4c93a54d52"},"id":"a6d10ad2-6647-483a-a0ae-c6d1a72efe31","version":3}
     k8 = {'address': '5d3e9c2b6909489fb4e68628f769047abfbf3e0a', 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': 'f6848d524e2c1e68bfde83d0abb6f9ea'}, 'ciphertext': '8507b93dfc413306b77fdc4295e3ec7c077d5366b598a227df95862f5d279291', 'kdf': 'pbkdf2', 'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256', 'salt': '28f1e57173172bc5d3b79a58eec37ca4'}, 'mac': '4aa2e5f2a4131088b7cee3c58f1ad94a34a5da8c252462026472c67bad9093df'}, 'id': '2bdfd378-242f-4275-b53d-50cee66b4c5f', 'version': 3}
+    kkkkk = {"address":"3ff83cc121adae7953cc96c8fab1463c2756d4d6","crypto":{"cipher":"aes-128-ctr","ciphertext":"9159d08b6b72b26cb9aa0eb22776ad73f12444d1c333f1b77a6350497fbcf486","cipherparams":{"iv":"d073e228b007782f029f2f229c585ddc"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"5e1146850019085d042a7b660d6f6e99266e35d797a5e55d7402c263f4b96c9f"},"mac":"4301617ced915e9a22b5f93b937d8a61f4113a34615feb681cdb0f8a8db87b51"},"id":"e82ce4db-c07a-4959-8c8c-a0e17fd0d6ab","version":3}
     gas_price = w3.eth.gasPrice
     print(gas_price)
-    payload = {
-        "method": "send_transaction",
-        "params": {
-            "appid": "hyf_app",
-            "sign": "",
-            "data": {
-                "to_address": "0x5030a2589e9a0bd58fd6708f92c325c7b9433118",
-                "value": 99000000,
-                "gas_limit": 40000,
-                "gas_price": gas_price,
-                "pwd": "hyf",
-                "keystore": k8,
-                "time": time.time()
-            }
-        },
-        "jsonrpc": "2.0",
-        "id": 0
-    }
+    # payload = {
+    #     "method": "send_transaction",
+    #     "params": {
+    #         "appid": "hyf_app",
+    #         "sign": "",
+    #         "data": {
+    #             "to_address": "0xA4C013179C761a284197F8B4BE18a74525650062",
+    #             "value": 99000000,
+    #             "gas_limit": 40000,
+    #             "gas_price": gas_price,
+    #             "pwd": "123456",
+    #             "keystore": kkkkk,
+    #             "time": time.time()
+    #         }
+    #     },
+    #     "jsonrpc": "2.0",
+    #     "id": 0
+    # }
     # payload = {
     #     "method": "import_private_key",
     #     "params": {
@@ -119,14 +120,28 @@ def main():
                 "appid": "hyf_app",
                 "sign": "",
                 "data": {
-                    "address": ["0xcddd1a4d1c811e9ef5fa392266de98022107583f",
-                                "0xcddd1a4d1c811e9ef5fa392266de98022107583f"],
+                    "address": ["0xA4C013179C761a284197F8B4BE18a74525650062",
+                                "0xA4C013179C761a284197F8B4BE18a74525650062"],
                     "time": time.time()
                 }
             },
             "jsonrpc": "2.0",
             "id": 0
         }
+#     payload = {
+#         "method": "read_msg",
+#             "params": {
+#                 "appid": "hyf_app",
+#                 "sign": "",
+#                 "data": {
+#                     "address": "0xA4C013179C761a284197F8B4BE18a74525650062",
+#                     "time": time.time()
+#                 }
+#             },
+#             "jsonrpc": "2.0",
+#             "id": 0
+#
+#     }
 #     payload = {
 #     "method": "get_all_transaction",
 #     "params": {
@@ -156,7 +171,7 @@ def main():
     payload["params"]["data"] = ec1.encrypt(payload["params"]["data"]).decode()
     for i in range(1):
         response = requests.post(
-            url_waiwang, data=json.dumps(payload), headers=headers).json()
+            url, data=json.dumps(payload), headers=headers).json()
 
     print(response)
     ddata = ec.decrypt(response["result"]["data"])

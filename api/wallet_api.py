@@ -84,15 +84,18 @@ def get_balance(*args, **kwargs):
     data = kwargs['decrypt']
     address_list = data.get("address", None)
     L = []
+    session = db_manager.slave()
     if address_list:
         # address_list = eval(address_list)
         for address in address_list:
             address = w3.toChecksumAddress(address)
             eth_balance = w3.fromWei(w3.eth.getBalance(address, 'latest'), 'ether')
             eth_balance = str(eth_balance)
+            op = session.query(Accounts).filter(Accounts.address == address).one()
             d = {
                 "address": address,
-                "eth_balance": eth_balance
+                "eth_balance": eth_balance,
+                "arrival_reminder": op.arrival_reminder
             }
             L.append(d)
         ec_cli = kwargs['ec_cli']
@@ -166,7 +169,13 @@ def send_transaction(*args, **kwargs):
                 session.close()
             except Exception as e:
                 return {"code": "fail", "error": f"{e}"}
-        
+        # 更新到账小红点提示
+        op = session.query(Accounts).filter(Accounts.address == to_address).one()
+        op.arrival_reminder = 1
+
+        session.commit()
+        session.close()
+
         d = {
             "tx_hash": tx_hash.hex()
         }
@@ -370,4 +379,39 @@ def search_transaction(*args, **kwargs):
         return data
     else:
         return {"code": "fail", "error": check}
+
+@api_add
+@check_conn(request)
+def read_msg(*args, **kwargs):
+    try:
+        data = kwargs['decrypt']
+        address = data.get("address", None)
+        print(address)
+        session = db_manager.master()
+        # 小红点状态修改为已读
+        op = session.query(Accounts).filter(Accounts.address == address).one()
+        op.arrival_reminder = 0
+
+        session.commit()
+        session.close()
+    except Exception as e:
+        return {"code": "fail", "error": f"{e}"}
+
+    result = {
+        "address": address,
+        "time": time.time(),
+    }
+
+    ec_cli = kwargs['ec_cli']
+    ec_srv = kwargs['ec_srv']
+    sign = ec_srv.sign(result).decode()
+    result = ec_cli.encrypt(result).decode()
+
+    return {
+        "code": "success",
+        "sign": sign,
+        "data": result
+    }
+
+
 

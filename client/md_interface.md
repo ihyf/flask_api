@@ -134,20 +134,91 @@ URL:{baseurl}/api
         "data": [
             {
                 "address": "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1",
-                "eth_balance": "100"
+                "eth_balance": "100",
+                "arrival_reminder": 1
             },
             {
                 "address": "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1",
-                "eth_balance": "100"
+                "eth_balance": "100",
+                "arrival_reminder": 1
             },
             {
                 "address": "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1",
-                "eth_balance": "100"
+                "eth_balance": "100",
+                "arrival_reminder": 0
             },
             {
                 "address": "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1",
-                "eth_balance": "100"
+                "eth_balance": "100",
+                "arrival_reminder": 0
             }
+        ]
+    }
+}
+```
+加密后
+```json
+{
+    "id": 0,
+    "jsonrpc": "2.0",
+    "result": {
+        "code": "success",
+        "sign": "",
+        "data": ""
+    }
+}
+```
+```
+error
+{"result": {"code":"fail", "error": "no address"}, "id": 0, "jsonrpc": "2.0"}
+```
+# 钱包-到账已读
+---
+URL:{baseurl}/api
+## 上行
+加密前
+```json
+{
+    "method": "read_msg",
+    "params": {
+        "appid": "hyf_app",
+        "sign": "",
+        "data": {
+            "address": "0xA4C013179C761a284197F8B4BE18a74525650062",
+            "time": "时间戳"
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 0
+}
+```
+加密后
+```json
+{
+    "method": "get_balance",
+    "params": {
+        "appid": "hyf_app",
+        "sign": "",
+        "data": ""
+    },
+    "jsonrpc": "2.0",
+    "id": 0
+}
+```
+## 下行
+加密前
+```json
+{
+    "id": 0,
+    "jsonrpc": "2.0",
+    "result": {
+        "code": "success",
+        "sign": "",
+        "data": [
+            {
+                "address": "0x4b75f75398672BD76587c0Bb1f4Ab7dd3673b9D1",
+                "time": "时间戳"
+            }    
         ]
     }
 }
@@ -1125,9 +1196,9 @@ URL:{baseurl}/api
         "data": {
             "func_name": "getbonusMoney",
             "func_param": "",
-            "keystore": "",
-            "pwd": "",
-            "value": 2,
+            "keystore": "", （选填）
+            "pwd": "", （选填）
+            "value": 2, (向合约打入的金额，可为0)
             "time": 123000
         }
     },
@@ -1445,7 +1516,7 @@ URL:{baseurl}/api
 {
 	"jsonrpc": "2.0",
 	"id": 1,
-	"method": "get_newest_help_information",
+	"method": "get_newest_help_list",
 	"params": {
 		"page": "1",
 		"limit": "10"
@@ -1459,9 +1530,19 @@ URL:{baseurl}/api
 {
 	"result": {
 		"code": "success",
-		"data": {
-			"url": "http://127.0.0.1:7000/main/h5_help_list/"
-		}
+		"data": [{
+			"id": 17,
+			"question": "地址是什么意思？",
+			"answer": "地址相当于银行卡号，供您收款时使用。\r\n",
+			"edit_time": "2019-02-22 09:45:29",
+			"url": "http://127.0.0.1:7000/main/h5_help_detail/17"
+		}, {
+			"id": 18,
+			"question": "账户文件是什么？",
+			"answer": "账户文件是您整个账户的保障，丢失账户文件，账号无法恢复，请妥善备份和管理。",
+			"edit_time": "2019-02-22 09:43:02",
+			"url": "http://127.0.0.1:7000/main/h5_help_detail/18"
+		}]
 	},
 	"id": 1,
 	"jsonrpc": "2.0"

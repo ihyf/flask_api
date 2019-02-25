@@ -1,8 +1,6 @@
 # coding:utf-8
-# from sqlalchemy.orm import mapper
-# from consume.util.mysqldb import Base
 from sqlalchemy.schema import CreateTable
-from consume.util.mysqldb import db_manager
+from util.dbmanager import db_manager
 
 
 def mirror_tb_1db(origin_tname, new_tname, dbalias):
