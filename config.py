@@ -21,7 +21,7 @@ contract_url = "http://192.168.1.11:82/upload/"
 
 REDIS_URL = "redis://:@192.168.1.20:6379/0?charset=utf8&decode_responses=true"
 
-w3_url_neiwang = "http://192.168.1.33:8101"
+w3_url_neiwang = "http://192.168.1.14:8101"
 w3_url = "http://47.244.122.201:8101"
 # w3_url = "http://127.0.0.1:8545"
 

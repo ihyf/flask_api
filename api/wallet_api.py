@@ -7,14 +7,11 @@ from util.compile_solidity_utils import w3
 from util.check_fuc import check_kv, send_100_to_new_account
 from flask import request
 from eth_account import Account
-from mnemonic.mnemonic import Mnemonic
-from util.mnemonic_utils import mnemonic_to_private_key
 from cert.eth_checkout import check_conn
 from util.mysql_db import db_manager, Accounts, TransactionRecord
 from sqlalchemy import and_,or_
-from util.async_tools import wait_transactio_confirm
-import asyncio
 from util.check_fuc import get_srv_time
+from util.errno import err_format
 
 
 @api_add
@@ -38,7 +35,7 @@ def create_account(*args, **kwargs):
         wallet = Account.encrypt(account.privateKey, pwd)
         
         # 新建用户打100个币
-        send_100_to_new_account(address)
+        # send_100_to_new_account(address)
         
         # 插入数据库
         create_time = time.strftime("%Y-%m-%d %X", time.localtime())
@@ -71,10 +68,7 @@ def create_account(*args, **kwargs):
             "data": result
         }
     else:
-        return {
-            "code": "fail",
-            "error": "no password"
-        }
+        return err_format(errno_n=-11101)
 
 
 @api_add
@@ -83,15 +77,19 @@ def get_balance(*args, **kwargs):
     # 获取余额
     data = kwargs['decrypt']
     address_list = data.get("address", None)
+    request_type = data.get("request_type", 0)
     L = []
     session = db_manager.slave()
     if address_list:
-        # address_list = eval(address_list)
+        if request_type == 0:
+            address_list = eval(address_list)
         for address in address_list:
             address = w3.toChecksumAddress(address)
             eth_balance = w3.fromWei(w3.eth.getBalance(address, 'latest'), 'ether')
             eth_balance = str(eth_balance)
             op = session.query(Accounts).filter(Accounts.address == address).one()
+            if op.arrival_reminder != 1:
+                op.arrival_reminder == 0
             d = {
                 "address": address,
                 "eth_balance": eth_balance,
@@ -102,18 +100,15 @@ def get_balance(*args, **kwargs):
         ec_srv = kwargs['ec_srv']
         sign = ec_srv.sign(L).decode()
         d_list = ec_cli.encrypt(L).decode()
-        
+
         return {
             "code": "success",
             "sign": sign,
             "data": d_list
-            
+
         }
     else:
-        return {
-            "code": "fail",
-            "error": "no address"
-        }
+        return err_format(errno_n=-11102)
 
 
 @api_add
@@ -137,7 +132,7 @@ def send_transaction(*args, **kwargs):
             private_key = Account.decrypt(json.dumps(keystore), pwd)
         except Exception as e:
             print(e)
-            return {"code": "fail", "error": "pwd error"}
+            return err_format(errno_n=-11103)
         account = Account.privateKeyToAccount(private_key)
         from_address = account.address
         nonce = w3.eth.getTransactionCount(account.address)
@@ -168,14 +163,16 @@ def send_transaction(*args, **kwargs):
                 session.commit()
                 session.close()
             except Exception as e:
-                return {"code": "fail", "error": f"{e}"}
+                return err_format(errno_n=-11104)
         # 更新到账小红点提示
-        op = session.query(Accounts).filter(Accounts.address == to_address).one()
-        op.arrival_reminder = 1
+        try:
+            op = session.query(Accounts).filter(Accounts.address == to_address).one()
+            op.arrival_reminder = 1
 
-        session.commit()
-        session.close()
-
+            session.commit()
+            session.close()
+        except Exception as e:
+            return err_format(errno_n=-10201)
         d = {
             "tx_hash": tx_hash.hex()
         }
@@ -191,7 +188,7 @@ def send_transaction(*args, **kwargs):
             "data": d
         }
     else:
-        return {"code": "fail", "error": check}
+        return err_format(errno_n=-10106)
 
 
 @api_add
@@ -202,7 +199,7 @@ def import_private_key(*args, **kwargs):
     necessary_keys = ["private_key", "pwd"]
     check = check_kv(data, necessary_keys)
     if check != "Success":
-        return {"code": "fail", "error": check}
+        return err_format(errno_n=-10106)
     private_key = data.get("private_key", None)
     pwd = data.get("pwd", None)
     if private_key and pwd:
@@ -227,7 +224,7 @@ def import_private_key(*args, **kwargs):
             "data": d
         }
     else:
-        return {"code": "fail", "error": "no private_key or no pwd"}
+        return err_format(errno_n=-10106)
 
 
 @api_add
@@ -238,7 +235,7 @@ def import_keystore(*args, **kwargs):
     necessary_keys = ["keystore", "pwd"]
     check = check_kv(data, necessary_keys)
     if check != "Success":
-        return {"code": "fail", "error": check}
+        return err_format(errno_n=-10106)
     keystore = data.get("keystore", None)
     pwd = data.get("pwd", None)
     private_key = Account.decrypt(json.dumps(keystore), pwd)
@@ -290,7 +287,7 @@ def export_private(*args, **kwargs):
             "data": d
         }
     else:
-        return {"code": "fail", "error": check}
+        return err_format(errno_n=-10106)
 
 
 @api_add
@@ -301,7 +298,7 @@ def export_keystore(*args, **kwargs):
     necessary_keys = ["keystore", "pwd"]
     check = check_kv(data, necessary_keys)
     if check != "Success":
-        return {"code": "fail", "error": check}
+        return err_format(errno_n=-10106)
     keystore = data.get("keystore", None)
     pwd = data.get("pwd", None)
     private_key = Account.decrypt(json.dumps(keystore), pwd)
@@ -341,7 +338,7 @@ def get_all_transaction(*args, **kwargs):
                 order_by(-TransactionRecord.id)[page*limit:(page+1)*limit]
             session.close()
         except Exception as e:
-            return {"code": "fail", "error": f"{e}"}
+            return err_format(errno_n=-10201)
         transaction_list = []
         for l in r_list:
             d_l = {
@@ -366,7 +363,7 @@ def get_all_transaction(*args, **kwargs):
             "data": d
         }
     else:
-        return {"error": check}
+        return err_format(errno_n=-10106)
 
 
 @api_add
@@ -378,7 +375,8 @@ def search_transaction(*args, **kwargs):
         data = w3.eth.getTransaction(hx_hash)
         return data
     else:
-        return {"code": "fail", "error": check}
+        return err_format(errno_n=-10106)
+
 
 @api_add
 @check_conn(request)
@@ -395,7 +393,7 @@ def read_msg(*args, **kwargs):
         session.commit()
         session.close()
     except Exception as e:
-        return {"code": "fail", "error": f"{e}"}
+        return err_format(errno_n=-10201)
 
     result = {
         "address": address,

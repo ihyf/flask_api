@@ -32,11 +32,13 @@ class UserSchema(Schema):
     name = fields.String(required=True)
     gender = fields.String(required=True, validate=check_gender)
     
-    
+a = 0
 @api_add
 def my_method(*args, **kwargs):
-    d = {"ihyf": 111}
-    return d
+    global a
+    a += 1
+    print(a)
+    return a
 
 
 # @api_add

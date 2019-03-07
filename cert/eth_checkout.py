@@ -10,6 +10,7 @@ from util.db_redis import redis_store
 from util.mysql_db import Apps
 from cert.eth_certs import EthCert
 from config import API_TRUST_DOMAIN
+from util.errno import err_format
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 
@@ -18,25 +19,26 @@ def check_conn(request):
         @functools.wraps(func)
         def wrapper(*args, **kw):
             if "appid" not in kw or "data" not in kw or 'sign' not in kw:
-                return {"code": "fail", "error": "data format error!"}
+                return err_format(0, -10107)
             # 哈希data数据，限制多次请求的问题
             sha1 = hashlib.sha1()
             try:
                 sha1.update(kw['sign'].encode())
             except:
-                return {"code": "fail", "error": "sign data error!"}
+                return err_format(0, -10103, 'sign')
             this_hash = sha1.hexdigest()
             faster_rc = "checkout_{0}_rfaster".format(kw['appid'])
             try:
                 if redis_store.exists(faster_rc) == 0:
                     redis_store.hset(faster_rc, this_hash, 1)
                     redis_store.expire(faster_rc, 60 * 60 * 12)
-                else:
-                    if redis_store.hexists(faster_rc, this_hash) is True:
-                        return {"code": "fail", "error": "request faster"}
-                redis_store.hset(faster_rc, this_hash, 1)
+                # 性能测试 暂时注释
+                # else:
+                #     if redis_store.hexists(faster_rc, this_hash) is True:
+                #         return err_format(0, -10401)
+                # redis_store.hset(faster_rc, this_hash, 1)
             except Exception as e:
-                return {"code": "fail", "error": "redis server error!"}
+                return err_format(0, -10301)
             # 查询appid
             keystatus, res_kes = get_keys(kw['appid'])
             if keystatus is not True:
@@ -44,24 +46,24 @@ def check_conn(request):
             # status
             # 0启用  1停用  2未授权
             if res_kes['status'] != 0:
-                return {"code": "fail", "error": "status: %d" % res_kes['status']}
+                return err_format(0, -10411)
             # srv
             if request.is_json is False:
                 # 要求Content-Type为：application/json
-                return {"code": "fail", "error": "content type error!"}
+                return err_format(0, -10420)
             if "method" not in request.json or not request.json['method']:
-                return {"code": "fail", "error": "method error!"}
+                return err_format(0, -10421)
             if request.json['method'] not in res_kes["srv"]:
-                return {"code": "fail", "error": "forbidden!"}
+                return err_format(0, -10422)
             # 检查客户端IP地址
             try:
                 for ip_net in res_kes["ip"]:
                     if request.remote_addr in IPy.IP(ip_net):
                         break
                 else:
-                    return {"code": "fail", "error": f"illegal ip request: {request.remote_addr}"}
+                    return err_format(0, -10423, request.remote_addr)
             except Exception as e:
-                return {"code": "fail", "error": f"match ip error: {e}"}
+                return err_format(0, -10424)
 
             # 检查客户端请求域名
             if ":" in request.host:
@@ -77,9 +79,9 @@ def check_conn(request):
                 ns_re = ns_re.replace(".", "\.").replace("*", ".*?").replace('[', '\[').replace(']', '\]')
                 try:
                     if not re.match(ns_re, real_host, re.I):
-                        return {"code": "fail", "error": f"illegal domain request: {real_host}"}
+                        return err_format(0, -10425, real_host)
                 except Exception as e:
-                    return {"code": "fail", "error": f"match domain error: {e}"}
+                    return err_format(0, -10426)
             # 客户端
             ec_cli = EthCert()
             ec_cli.init_key(public_key_str=res_kes["keys"][0], private_key_str=res_kes["keys"][1])
@@ -92,22 +94,22 @@ def check_conn(request):
                 # 用自己的私钥解密
                 decrypt_data = ec_srv.decrypt(kw['data'])
                 if not decrypt_data:
-                    return {"code": "fail", "error": ec_srv.error}
+                    return err_format(0, -10501, ec_srv.error)
                 # 用app的公钥对解密数据进行验证签名
                 if "sign" not in kw:
-                    return {"code": "fail", "error": "need sign data!"}
+                    return err_format(0, -10105, 'sign')
                 if not ec_cli.verify(decrypt_data, kw['sign']):
-                    return {"code": "fail", "error": ec_cli.error}
+                    return err_format(0, -10502)
                 try:
                     kw['decrypt'] = json.loads(decrypt_data.decode())
                 except Exception as e:
-                    return {"code": "fail", "error": f"need json or json error: {e}"}
+                    return err_format(0, -10004)
             else:
                 # 用app的公钥对解密数据进行验证签名
                 if "sign" not in kw:
-                    return {"code": "fail", "error": "need sign data!"}
+                    return err_format(0, -10105, 'sign')
                 if not ec_cli.verify(kw["data"], kw['sign']):
-                    return {"code": "fail", "error": ec_cli.error}
+                    return err_format(0, -10502)
             kw['verify'] = True
             kw['ec_cli'] = ec_cli
             kw['ec_srv'] = ec_srv
@@ -169,11 +171,11 @@ def get_keys(appid):
             app = session.query(Apps).filter(Apps.appid == appid).one()
             session.close()
         except MultipleResultsFound:
-            return False, {"code": "fail", "error": "appid fount many"}
+            return err_format(0, -10202, appid)
         except NoResultFound:
-            return False, {"code": "fail", "error": "appid no found"}
+            return err_format(0, -10203, appid)
         except Exception as e:
-            return False, {"code": "fail", "error": f"{e}"}
+            return err_format(0, -10201, appid)
         res_kes["keys"] = [
                 app.cli_publickey,
                 app.cli_privatekey,

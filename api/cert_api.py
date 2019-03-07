@@ -9,6 +9,7 @@ from cert.eth_checkout import check_conn
 from flask import request
 from cert.eth_checkout import delete_checkout_redis
 from cert.eth_certs import EthCert
+from util.errno import err_format
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
@@ -28,83 +29,83 @@ def check_attr(name):
 def bk_create(*args, **kwargs):
     origin = kwargs['decrypt']
     if "appid" not in origin or not origin['appid'] and isinstance(origin['appid'], str):
-        return {"code": "fail", "error": "appid error"}
+        return err_format(1, -10107)
     session = db_manager.master()
     appexist = session.query(Apps).filter(Apps.appid == origin['appid']).all()
     if appexist:
-        return {"code": "fail", "error": "appid exist"}
+        return err_format(1, -10601)
     desc = origin.get("desc", "")
     ip = origin.get("ip")
     if not isinstance(ip, list):
-        return {"code": "fail", "error": "ip filed error"}
+        return err_format(1, -10104, "ip")
     try:
         for ipnet in ip:
             IPy.IP(ipnet)
     except Exception as e:
-        return {"code": "fail", "error": "ip filed error"}
+        return err_format(1, -10003, "ip")
     ns = origin.get("ns")
     if not isinstance(ns, list):
-        return {"code": "fail", "error": "ns filed error"}
+        return err_format(1, -10104)
     srv = origin.get("srv", [])
     if not isinstance(srv, list):
-        return {"code": "fail", "error": "srv filed error"}
+        return err_format(1, -10104, "ns")
     master_contract_address = origin.get("master_contract_address", [])
     if not isinstance(master_contract_address, list):
-        return {"code": "fail", "error": "master_contract_address filed error"}
+        return err_format(1, -10104, 'master_contract_address')
     wallet = origin.get("wallet", None)
     if wallet is None:
-        return {"code": "fail", "error": "wallet filed error"}
+        return err_format(1, -10105, 'wallet')
     callback_url = origin.get("callback_url", None)
     status = origin.get("status")
     if not isinstance(status, int):
-        return {"code": "fail", "error": "status filed error"}
+        return err_format(1, -10104, 'status')
     create_cli_keys = origin.get("create_cli_keys", True)
     create_srv_keys = origin.get("create_srv_keys", True)
     ec = EthCert()
     if create_cli_keys is True:
         cli_keys_length = origin.get("cli_keys_length", 4096)
         if cli_keys_length not in [1024, 2048, 4096]:
-            return {"code": "fail", "error": "cli_keys_length must in [1024, 2048, 4096]"}
+            return err_format(1, -10504, 'cli_keys_length')
         ec.generate(cli_keys_length)
         cli_privatekey = ec.get_privatekey()
         cli_publickey = ec.get_publickey()
     else:
         if "cli_keys" not in origin:
-            return {"code": "fail", "error": "miss cli_keys filed"}
+            return err_format(1, -10105, 'cli_keys')
         if "cli_publickey" not in origin['cli_keys']:   # 上传了客户端的公钥
-            return {"code": "fail", "error": "cli_keys error"}
+            return err_format(1, -10105, 'cli_publickey')
         cli_publickey = origin['cli_keys']['cli_publickey']
         if not cli_publickey:
-            return {"code": "fail", "error": "cli_keys error"}
+            return err_format(1, -10103, 'cli_publickey')
         if "cli_privatekey" in origin['cli_keys']:
             cli_privatekey = origin['cli_keys']['cli_privatekey']
         else:
             cli_privatekey = None
         ec.init_key(private_key_str=cli_privatekey, public_key_str=cli_publickey)
         if ec.serialization() is False:
-            return {"code": "fail", "error": "cli_keys error, serialization fail"}
+            return err_format(1, -10505)
     if create_srv_keys is True:
         srv_keys_length = origin.get("srv_keys_length", 4096)
         if srv_keys_length not in [1024, 2048, 4096]:
-            return {"code": "fail", "error": "srv_keys_length must in [1024, 2048, 4096]"}
+            return err_format(1, -10504, 'srv_keys_length')
         ec.generate()
         srv_privatekey = ec.get_privatekey()
         srv_publickey = ec.get_publickey()
     else:
         if "srv_keys" not in origin:
-            return {"code": "fail", "error": "miss srv_keys filed"}
+            return err_format(1, -10105, 'srv_keys')
         if "srv_privatekey" not in origin['srv_keys']:  # 上传了服务端私钥
-            return {"code": "fail", "error": "srv_keys error"}
+            return err_format(1, -10105, 'srv_privatekey')
         srv_privatekey = origin['srv_keys']['srv_privatekey']
         if not srv_privatekey:
-            return {"code": "fail", "error": "srv_keys error"}
+            return err_format(1, -10103, 'srv_privatekey')
         if "srv_publickey" in origin['srv_keys']:
             srv_publickey = origin['srv_keys']['srv_publickey']
         else:
             srv_publickey = None
         ec.init_key(private_key_str=srv_privatekey, public_key_str=srv_publickey)
         if ec.serialization() is False:
-            return {"code": "fail", "error": "srv_keys error, serialization fail"}
+            return err_format(1, -10505)
     app = Apps(
         appid=origin['appid'],
         parent_appid=kwargs['appid'],
@@ -126,7 +127,7 @@ def bk_create(*args, **kwargs):
         session.commit()
     except Exception as e:
         session.close()
-        return {"code": "fail", "error": f"{e.args}"}
+        return err_format(1, -10201, e.args)
     result = {
         "appid": origin['appid'],
         "cli_privatekey": cli_privatekey,
@@ -152,7 +153,7 @@ def bk_create(*args, **kwargs):
 def bk_remove(*args, **kwargs):
     origin = kwargs['decrypt']
     if "appid" not in origin or not origin['appid'] and isinstance(origin['appid'], str):
-        return {"code": "fail", "error": "appid error"}
+        return err_format(1, -10101, 'appid')
     session = db_manager.master()
     session.query(Apps).filter(Apps.appid == origin['appid']).delete()
     session.commit()
@@ -175,21 +176,21 @@ def bk_remove(*args, **kwargs):
 def bk_edit(*args, **kwargs):
     origin = kwargs['decrypt']
     if "appid" not in origin or not origin['appid'] and isinstance(origin['appid'], str):
-        return {"code": "fail", "error": "appid error"}
+        return err_format(1, -10101, 'appid')
     session = db_manager.master()
     try:
         app = session.query(Apps).filter(Apps.appid == origin['appid']).one()
     except MultipleResultsFound:
-        return {"code": "fail", "error": "appid fount many"}
+        return err_format(1, -10202, origin['appid'])
     except NoResultFound:
-        return {"code": "fail", "error": "appid no found"}
+        return err_format(1, -10203, origin['appid'])
     except Exception as e:
-        return {"code": "fail", "error": f"{e}"}
+        return err_format(1, -10201, origin['appid'])
     for key in origin.keys():
         if check_attr(key) is False:
             if key == "time":
                 continue
-            return {"code": "fail", "error": f"filed {key} error"}
+            return err_format(1, -10204, key)
     if 'desc' in origin:
         app.desc = origin['desc']
     if 'ip' in origin and isinstance(origin['ip'], list):
@@ -206,22 +207,22 @@ def bk_edit(*args, **kwargs):
     if 'cli_publickey' in origin and origin['cli_publickey']:
         ec.init_key(public_key_str=origin['cli_publickey'])
         if ec.serialization() is False:
-            return {"code": "fail", "error": f"cli_publickey: {ec.error}"}
+            return err_format(1, -10505, 'cli_publickey')
         app.cli_publickey = origin['cli_publickey']
     if 'cli_privatekey' in origin and origin['cli_privatekey']:
         ec.init_key(private_key_str=origin['cli_privatekey'])
         if ec.serialization() is False:
-            return {"code": "fail", "error": f"cli_privatekey: {ec.error}"}
+            return err_format(1, -10505, 'cli_privatekey')
         app.cli_privatekey = origin['cli_privatekey']
     if 'srv_publickey' in origin and origin['srv_publickey']:
         ec.init_key(public_key_str=origin['srv_publickey'])
         if ec.serialization() is False:
-            return {"code": "fail", "error": f"srv_publickey: {ec.error}"}
+            return err_format(1, -10505, 'srv_publickey')
         app.srv_publickey = origin['srv_publickey']
     if 'srv_privatekey' in origin and origin['srv_privatekey']:
         ec.init_key(private_key_str=origin['srv_privatekey'])
         if ec.serialization() is False:
-            return {"code": "fail", "error": f"srv_privatekey: {ec.error}"}
+            return err_format(1, -10505, 'srv_privatekey')
         app.srv_privatekey = origin['srv_privatekey']
     if 'srv' in origin and isinstance(origin['srv'], list):
         app.srv = origin['srv']
@@ -247,27 +248,27 @@ def bk_edit(*args, **kwargs):
 def bk_reset(*args, **kwargs):
     origin = kwargs['decrypt']
     if "appid" not in origin or not origin['appid'] and isinstance(origin['appid'], str):
-        return {"code": "fail", "error": "appid error"}
+        return err_format(1, -10101, 'appid')
     session = db_manager.master()
     try:
         app = session.query(Apps).filter(Apps.appid == origin['appid']).one()
         session.close()
     except MultipleResultsFound:
-        return {"code": "fail", "error": "appid fount many"}
+        return err_format(1, -10202, origin['appid'])
     except NoResultFound:
-        return {"code": "fail", "error": "appid no found"}
+        return err_format(1, -10203, origin['appid'])
     except Exception as e:
-        return {"code": "fail", "error": f"{e}"}
+        return err_format(1, -10201, origin['appid'])
     reset_cli_keys = origin.get("reset_cli_keys", False)
     reset_srv_keys = origin.get("reset_srv_keys", False)
     if reset_cli_keys is not True and reset_srv_keys is not True:
-        return {"code": "fail", "error": "do nothing"}
+        return err_format(1, -10427)
     cli_keys_length = origin.get("cli_keys_length", 4096)
     if cli_keys_length not in [1024, 2048, 4096]:
-        return {"code": "fail", "error": "srv_keys_length must in [1024, 2048, 4096]"}
+        return err_format(1, -10504, 'cli_keys_length')
     srv_keys_length = origin.get("srv_keys_length", 4096)
     if srv_keys_length not in [1024, 2048, 4096]:
-        return {"code": "fail", "error": "srv_keys_length must in [1024, 2048, 4096]"}
+        return err_format(1, -10504, 'srv_keys_length')
     ec = EthCert()
     if reset_cli_keys is True:
         ec.generate(cli_keys_length)
@@ -305,25 +306,25 @@ def bk_reset(*args, **kwargs):
 def bk_info(*args, **kwargs):
     origin = kwargs['decrypt']
     if "appid" not in origin or not origin['appid'] and isinstance(origin['appid'], str):
-        return {"code": "fail", "error": "appid error"}
+        return err_format(1, -10101, 'appid')
     if "field" not in origin or not isinstance(origin['field'], list):
-        return {"code": "fail", "error": "field error"}
+        return err_format(1, -10107, 'field')
     session = db_manager.slave()
     try:
         app = session.query(Apps).filter(Apps.appid == origin['appid']).one()
         session.close()
     except MultipleResultsFound:
-        return {"code": "fail", "error": "appid fount many"}
+        return err_format(1, -10202, origin['appid'])
     except NoResultFound:
-        return {"code": "fail", "error": "appid no found"}
+        return err_format(1, -10203, origin['appid'])
     except Exception as e:
-        return {"code": "fail", "error": f"{e}"}
+        return err_format(1, -10201, origin['appid'])
     result = {"appid": origin['appid']}
     for key in origin['field']:
         if check_attr(key) is False:
             if key == "time":
                 continue
-            return {"code": "fail", "error": f"filed {key} error"}
+            return err_format(1, -10204, key)
         else:
             result[key] = eval(f"app.{key}")
     result_str = json.dumps(result, ensure_ascii=False)
@@ -349,7 +350,7 @@ def bk_lists(*args, **kwargs):
             apps = session.query(Apps)
         session.close()
     except Exception as e:
-        return {"code": "fail", "error": f"{e}"}
+        return err_format(1, -10201)
     r_apps = []
     for app in apps:
         result = {
@@ -374,7 +375,7 @@ def bk_lists(*args, **kwargs):
 def bk_status(*args, **kwargs):
     origin = kwargs['decrypt']
     if "appids" not in origin or not origin['appids'] and isinstance(origin['appids'], list):
-        return {"code": "fail", "error": "appids error"}
+        return err_format(1, -10101, 'appid')
     """
     ####
     还没有实现
@@ -397,7 +398,7 @@ def bk_status(*args, **kwargs):
 def bk_cleanup(*args, **kwargs):
     origin = kwargs['decrypt']
     if "appid" not in origin or not origin['appid'] and isinstance(origin['appid'], str):
-        return {"code": "fail", "error": "appid error"}
+        return err_format(1, -10101, 'appid')
     delete_checkout_redis(origin['appid'])
     result = {"appid": origin['appid']}
     result_str = json.dumps(result, ensure_ascii=False)

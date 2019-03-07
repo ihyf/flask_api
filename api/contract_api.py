@@ -20,6 +20,7 @@ from urllib import parse
 from util.check_fuc import transfer_contract_tool
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from util.db_redis import redis_store
+from util.errno import err_format
 
 
 @api_add
@@ -46,7 +47,7 @@ def transfer_contract(*args, **kwargs):
             contract_name = dc.contract_name
             contract_address = dc.contract_address
         except Exception as e:
-            return {"code": "fail", "error": "no this DeployContracts"}
+            return err_format(errno_n=-10201)
 
         with open("json_files/data_{}.json".format(contract_name), 'r') as f:
             datastore = json.load(f)
@@ -54,72 +55,78 @@ def transfer_contract(*args, **kwargs):
         contract_address = datastore["contract_address"]
         contract_instance = w3.eth.contract(address=contract_address, abi=abi)
         if keystore and pwd:
-            private_key = Account.decrypt(json.dumps(keystore), pwd)
-            account_instance = Account.privateKeyToAccount(private_key)
-            address = account_instance.address
-            account = w3.toChecksumAddress(address)
-            print(account)
-            nonce = w3.eth.getTransactionCount(account)
-            
-        if "get" not in func_name and "set" not in func_name:
-            #s1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
-            func_param = format_func_param(func_param)
-            s1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
-            print(s1)
-            t_dict = eval(s1)
-            print(t_dict)
-            signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
-            tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
-            w3.eth.waitForTransactionReceipt(tx_hash)
-            result = {"info": "{} ok".format(func_name)}
-            type = 1
-            pay_gas = ""
-
-        elif "set" in func_name:
-            # s = f"""contract_instance.functions.{func_name}({func_param}).transact({{'from': '{account}', 'value': w3.toWei({value}, 'ether')}})"""
-            # tx_hash = eval(s)
-            # w3.eth.waitForTransactionReceipt(tx_hash)
-            #
-            # result = {"info": "set {} ok".format(func_name)}
-            # type = 1
-            # pay_gas = ""
-            # 临时
-            # func_param = func_param.split(",")
-            # address = w3.toChecksumAddress(func_param[0])
-            # num1 = func_param[1]
-            # num2 = func_param[2]
-            #
-            # ss1 = f"""contract_instance.functions.{func_name}('{address}',{num1}, {num2}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
-            # print(ss1)
-            # t_dict = eval(ss1)
-            # print(t_dict)
-            # 临时
-            func_param = format_func_param(func_param)
-            s2 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
-            t_dict = eval(s2)
-            signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
-            tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
-            w3.eth.waitForTransactionReceipt(tx_hash)
-
-            pay_gas = ""
-            result = {"info": "set {} ok".format(func_name)}
-            type = 1
-            pay_gas = ""
-
-        elif "get" in func_name:
-            # func_param = w3.toChecksumAddress(func_param)
-            # ss = "contract_instance.functions.{func_name}('{func_param}').call()".format(func_name=func_name,
-            #                                                                              func_param=func_param)
-            func_param = format_func_param(func_param)
-            s3 = "contract_instance.functions.{func_name}({func_param}).call()".format(func_name=func_name,
-                                                                                         func_param=func_param)
-            print(s3)
-            result = eval(s3)
-            print(result)
+            try:
+                private_key = Account.decrypt(json.dumps(keystore), pwd)
+                account_instance = Account.privateKeyToAccount(private_key)
+                address = account_instance.address
+                account = w3.toChecksumAddress(address)
+                print(account)
+                nonce = w3.eth.getTransactionCount(account)
+            except Exception as e:
+                return err_format(errno_n=-11103)
+        
+        try:
+            if "get" not in func_name and "set" not in func_name:
+                #s1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+                func_param = format_func_param(func_param)
+                s1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+                print(s1)
+                t_dict = eval(s1)
+                print(t_dict)
+                signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
+                tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+                w3.eth.waitForTransactionReceipt(tx_hash)
+                result = {"info": "{} ok".format(func_name)}
+                type = 1
+                pay_gas = ""
     
-            tx_hash = ""
-            type = 2
-            pay_gas = "0"
+            elif "set" in func_name:
+                # s = f"""contract_instance.functions.{func_name}({func_param}).transact({{'from': '{account}', 'value': w3.toWei({value}, 'ether')}})"""
+                # tx_hash = eval(s)
+                # w3.eth.waitForTransactionReceipt(tx_hash)
+                #
+                # result = {"info": "set {} ok".format(func_name)}
+                # type = 1
+                # pay_gas = ""
+                # 临时
+                # func_param = func_param.split(",")
+                # address = w3.toChecksumAddress(func_param[0])
+                # num1 = func_param[1]
+                # num2 = func_param[2]
+                #
+                # ss1 = f"""contract_instance.functions.{func_name}('{address}',{num1}, {num2}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+                # print(ss1)
+                # t_dict = eval(ss1)
+                # print(t_dict)
+                # 临时
+                func_param = format_func_param(func_param)
+                s2 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+                t_dict = eval(s2)
+                signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
+                tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+                w3.eth.waitForTransactionReceipt(tx_hash)
+    
+                pay_gas = ""
+                result = {"info": "set {} ok".format(func_name)}
+                type = 1
+                pay_gas = ""
+    
+            elif "get" in func_name:
+                # func_param = w3.toChecksumAddress(func_param)
+                # ss = "contract_instance.functions.{func_name}('{func_param}').call()".format(func_name=func_name,
+                #                                                                              func_param=func_param)
+                func_param = format_func_param(func_param)
+                s3 = "contract_instance.functions.{func_name}({func_param}).call()".format(func_name=func_name,
+                                                                                             func_param=func_param)
+                print(s3)
+                result = eval(s3)
+                print(result)
+        
+                tx_hash = ""
+                type = 2
+                pay_gas = "0"
+        except Exception as e:
+            return err_format(errno_n=-12101)
 
         # 插入数据库
         try:
@@ -141,10 +148,7 @@ def transfer_contract(*args, **kwargs):
             session.commit()
             session.close()
         except Exception as e:
-            return {
-                "code": "fail",
-                "error": f"{e}"
-            }
+            return err_format(errno_n=-10205)
 
         ec_cli = kwargs['ec_cli']
         ec_srv = kwargs['ec_srv']
@@ -157,7 +161,7 @@ def transfer_contract(*args, **kwargs):
             "data": result
         }
     else:
-        return {"code": "fail", "error": check}
+        return err_format(errno_n=-10106)
     
     
 def generate_contrants_md(*args, **kwargs):
@@ -218,7 +222,7 @@ def generate_contrants_md(*args, **kwargs):
 def deploy_contract(*args, **kwargs):
     data = kwargs.get("data", None)
     if data is None:
-        return {"code": "fail", "error": "no data"}
+        return err_format(errno_n=-10005)
     necessary_keys = ["contract_name", "master_contract_name", "url"]
     check = check_kv(data, necessary_keys)
     if check == "Success":
@@ -270,7 +274,7 @@ def deploy_contract(*args, **kwargs):
             session.commit()
             session.close()
         except Exception as e:
-            return {"code": "fail", "error": f"{e}"}
+            return err_format(errno_n=-10205)
         # 生成接口文档
         generate_contrants_md()
         
@@ -290,7 +294,7 @@ def deploy_contract(*args, **kwargs):
             "data": d
         }
     else:
-        return {"code": "fail", "error": check}
+        return err_format(errno_n=-10106)
 
 
 @api_add
@@ -334,13 +338,16 @@ def add_master_contract(*args, **kwargs):
 
         session = db_manager.master()
         deploy_time = get_srv_time()
-        new_dc = DeployContracts(master_contract_name=master_contract_name, deploy_account=account, deploy_tx_hash=tx_hash,
-                                 deploy_time=deploy_time, pay_gas=pay_gas, master_contract_address=contract_address[0],
-                                 master_mark="master", contract_address="", contract_name="")
-        
-        session.add(new_dc)
-        session.commit()
-        session.close()
+        try:
+            new_dc = DeployContracts(master_contract_name=master_contract_name, deploy_account=account, deploy_tx_hash=tx_hash,
+                                     deploy_time=deploy_time, pay_gas=pay_gas, master_contract_address=contract_address[0],
+                                     master_mark="master", contract_address="", contract_name="")
+            
+            session.add(new_dc)
+            session.commit()
+            session.close()
+        except Exception as e:
+            return err_format(errno_n=-10205)
 
         d = {
             "master_contract_name": master_contract_name,
@@ -359,7 +366,7 @@ def add_master_contract(*args, **kwargs):
         }
         return {"data": "ok"}
     else:
-        return {"code": "fail", "error": check}
+        return err_format(errno_n=-10106)
     
 
 @api_add
@@ -382,7 +389,7 @@ def transfer_nopay_op(*args, **kwargs):
                 contract_name = dc.contract_name
                 contract_address = dc.contract_address
             else:
-                return {"code": "fail", "error": "this app no master_contract_address"}
+                return err_format(errno_n=-12201)
             
             func_name = data.get("func_name")
             func_param = data.get("func_param")
@@ -407,10 +414,7 @@ def transfer_nopay_op(*args, **kwargs):
             session.commit()
             session.close()
         except Exception as e:
-            return {
-                "code": "fail",
-                "error": f"{e}"
-            }
+            return err_format(errno_n=-10205)
         result = {"op_id": str(op.op_id)}
         ec_cli = kwargs['ec_cli']
         ec_srv = kwargs['ec_srv']
@@ -424,7 +428,7 @@ def transfer_nopay_op(*args, **kwargs):
         }
     
     else:
-        return {"code": "fail", "error": check}
+        return err_format(errno_n=-10106)
 
 
 @api_add
@@ -451,9 +455,9 @@ def op_details(*args, **kwargs):
                 "data": result
             }
         except Exception as e:
-            return {"code": "fail", "error": f"{e}"}
+            return err_format(errno_n=-40000)
     else:
-        return {"code": "fail", "error": check}
+        return err_format(errno_n=-10106)
 
 
 @api_add
@@ -536,9 +540,9 @@ def pay_transfer_op(*args, **kwargs):
                 "data": result
             }
         except Exception as e:
-            return {"code": "fail", "error": f"{e}"}
+            return err_format(errno_n=-40000)
     else:
-        return {"code": "fail", "error": check}
+        return err_format(errno_n=-10106)
 
 
 @api_add
@@ -565,6 +569,6 @@ def op_details_fordapp(*args, **kwargs):
                 "data": result
             }
         except Exception as e:
-            return {"code": "fail", "error": f"{e}"}
+            return err_format(errno_n=-40000)
     else:
-        return {"code": "fail", "error": check}
+        return err_format(errno_n=-10106)

@@ -122,7 +122,8 @@ def main():
                 "data": {
                     "address": ["0xA4C013179C761a284197F8B4BE18a74525650062",
                                 "0xA4C013179C761a284197F8B4BE18a74525650062"],
-                    "time": time.time()
+                    "time": time.time(),
+                    "request_type": 1
                 }
             },
             "jsonrpc": "2.0",
