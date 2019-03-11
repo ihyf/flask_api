@@ -147,7 +147,7 @@ def send_transaction(*args, **kwargs):
         signed = account.signTransaction(transaction_dict)
         tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
         
-        # receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+        receipt = w3.eth.waitForTransactionReceipt(tx_hash)
         receipt = 1
         if receipt:
             # 插入数据库

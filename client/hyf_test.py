@@ -140,6 +140,13 @@ class Hyf(object):
             "time": time.time()
         }
         self.send_request(url=self.url_local, method=method, data=data)
+    
+    def test_my_method(self):
+        method = "my_method"
+        data = {
+            "time": time.time()
+        }
+        self.send_request(url=self.url_neiwang, method=method, data=data)
 
 
 if __name__ == "__main__":
@@ -150,3 +157,4 @@ if __name__ == "__main__":
     # hyf.test_create_account()
     # hyf.test_get_balance()
     # hyf.test_send_transaction()
+    hyf.test_add_master_contract()

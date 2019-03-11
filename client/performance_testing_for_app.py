@@ -6,6 +6,11 @@ import json
 from cert.eth_certs import EthCert
 import random
 import hashlib
+k_poa_node1 = {"address":"3ff83cc121adae7953cc96c8fab1463c2756d4d6","crypto":{"cipher":"aes-128-ctr","ciphertext":"9159d08b6b72b26cb9aa0eb22776ad73f12444d1c333f1b77a6350497fbcf486","cipherparams":{"iv":"d073e228b007782f029f2f229c585ddc"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"5e1146850019085d042a7b660d6f6e99266e35d797a5e55d7402c263f4b96c9f"},"mac":"4301617ced915e9a22b5f93b937d8a61f4113a34615feb681cdb0f8a8db87b51"},"id":"e82ce4db-c07a-4959-8c8c-a0e17fd0d6ab","version":3}
+k_person1 = {"address":"01533b8693bb6a8062542cbee7239fc40089b9ae","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"49f794c57e9d31ba67739e244e6bcf95"},"ciphertext":"c2672c4cd1ff2f4e7ed35a71e6693e041b0c66136837f42cd7054e3407602423","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"5018596f7f336ec301b88b159c17ee74"},"mac":"240f59662dcc94dbeb60a22dff593cff810ada8e52552873992f0e701190c568"},"id":"19e3faa3-c4fd-46b5-85d0-6ffb09984ffe","version":3}
+k_person2 = {"address":"0dad229c539b2d62123f50dd1c8a51d5c6a92358","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"d2eebe2ba9983cb945c47d69b817ef8b"},"ciphertext":"36ec243893c40dc8ff6f4b4de9c4356b732c57873c32d1f82f5491526c318600","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"2af25477b71c65b89adbd41a2ee4008d"},"mac":"2338ba73c6e3f4071f85f3bf5809a8a3723ef623108483a80e7accc017c81e66"},"id":"7213cbdc-cc20-49db-87b1-f07a12aca3cb","version":3}
+k_person3 = {"address":"d3321fb522fb5114eb398be2a53f1017a95d2c4b","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"d634969fe11ce67a7d17b8cb80f0e2fa"},"ciphertext":"6cb2f9ca1032b222592705a873e1fcab07be0cb9e32a48f4b0084feabcf5b66c","kdf":"pbkdf2","kdfparams":{"c":1000000,"dklen":32,"prf":"hmac-sha256","salt":"ada04082526be4dc0b73a903497220c6"},"mac":"1a966a4ee827b012fbfa00af07182ed62ba1ce2086a594e151e89053f4b1d03f"},"id":"57e21073-3033-4afa-95dc-e65209d5bb14","version":3}
+to_address_list = ["0x01533b8693bb6a8062542cbee7239fc40089b9ae", "0x0dad229c539b2d62123f50dd1c8a51d5c6a92358", "0xd3321fb522fb5114eb398be2a53f1017a95d2c4b"]
 
 
 sema = asyncio.Semaphore(1)
@@ -55,9 +60,9 @@ class Testing(object):
         #     response = response.decode()
         # else:
         #     response = response.json()
-        # print(response)
+        print(response)
         ddata = self.ec_cli.decrypt(response["result"]["data"])
-        # print(ddata)
+        print(ddata)
         # print(self.ec_srv.verify(ddata, response["result"]["sign"]))
     
     async def test_create_account(self):
@@ -80,15 +85,15 @@ class Testing(object):
         }
         await self.send_request(url=self.url_neiwang, method=method, data=data)
     
-    async def test_send_transaction(self):
+    async def test_send_transaction(self, to_address):
         method = "send_transaction"
         data = {
-            "to_address": "0xa84684b7db41dae3a26a5ca7b87bc967a8dd1107",
-            "value": 5000000,
-            "gas_limit": 40000,
-            "gas_price": 90000000,
+            "to_address": to_address,
+            "value": 101,
+            "gas_limit": 21000,
+            "gas_price": 100,
             "pwd": "123456",
-            "keystore": keystore_poa_node1,
+            "keystore": k_poa_node1,
             "time": time.time()
         }
         await self.send_request(url=self.url_local, method=method, data=data)
@@ -126,21 +131,13 @@ class Testing(object):
         print(data["time"])
         await self.send_request(url=self.url_local, method=method, data=data)
     
-    async def my_method(self):
-        method = "my_method"
-        data = {
-            "time": time.time()
-        }
-        await self.send_request(url=self.url_neiwang, method=method, data=data)
-
 
 if __name__ == "__main__":
     t = Testing()
     
     # asyncio.ensure_future(slow_task(future))
     # future.add_done_callback(got_result)
-    asyncio.ensure_future(t.test_create_account())
-    tasks = [asyncio.ensure_future(t.test_get_balance()) for i in range(1)]
+    tasks = [asyncio.ensure_future(t.test_create_account())]
     t1 = time.time()
     loop.run_until_complete(asyncio.gather(*tasks))
     t2 = time.time()-t1

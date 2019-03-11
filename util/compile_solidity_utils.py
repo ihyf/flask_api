@@ -10,7 +10,7 @@ w3 = Web3(Web3.HTTPProvider(config.w3_url_neiwang))
 # w3 = Web3(Web3.HTTPProvider(config.w3_url))
 # w3 = Web3(WebsocketProvider('ws://127.0.0.1:8546'))
 w3.middleware_stack.inject(geth_poa_middleware, layer=0)
-w3.middleware_stack.add(pythonic_middleware)
+# w3.middleware_stack.add(pythonic_middleware)
 
 
 def separate_main_n_link(file_path, contracts):
