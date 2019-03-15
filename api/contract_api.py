@@ -468,7 +468,8 @@ def pay_transfer_op(*args, **kwargs):
                 "contract_name": contract_name,
                 "func_name": func_name,
                 "func_param": func_param,
-                "value": value
+                "value": value,
+                "appid": appid
             }
             result_list = transfer_contract_tool(data)
             result = result_list[0]

@@ -4,6 +4,7 @@ from util.compile_solidity_utils import w3
 from util.dbmanager import db_manager
 from eth_account import Account
 from util.mysql_db import ContractOp, TransactionRecord
+from util.tools import add_to_transaction
 
 
 def check_kv(d1, necessary_keys):
@@ -48,6 +49,7 @@ def get_srv_time():
 
 def transfer_contract_tool(data):
     # 调用合约 工具函数
+    appid = data.get("appid", None)
     contract_name = data.get("contract_name", None)
     func_name = data.get("func_name", None)
     func_param = data.get("func_param", None)
@@ -68,9 +70,11 @@ def transfer_contract_tool(data):
     nonce = w3.eth.getTransactionCount(account)
     
     if "get" not in func_name and "set" not in func_name:
-        ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
-        print(ss1)
-        t_dict = eval(ss1)
+        func_param = format_func_param(func_param)
+        # ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+        s1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+        print(s1)
+        t_dict = eval(s1)
         print(t_dict)
         signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
         tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
@@ -78,10 +82,15 @@ def transfer_contract_tool(data):
         result = {"info": "{} ok".format(func_name)}
         type = 1
         pay_gas = ""
+        # 增加到交易列表
+        add_to_transaction(from_address=account, to_address=contract_address, value=value,
+                           tx_hash=tx_hash.hex(), tr_appid=appid)
     elif "set" in func_name:
-        ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
-        print(ss1)
-        t_dict = eval(ss1)
+        func_param = format_func_param(func_param)
+        #ss1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+        s2 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
+        print(s2)
+        t_dict = eval(s2)
         print(t_dict)
         signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
         tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
@@ -91,14 +100,20 @@ def transfer_contract_tool(data):
         result = {"info": "set {} ok".format(func_name)}
         type = 1
         pay_gas = ""
+        # 增加到交易列表
+        add_to_transaction(from_address=account, to_address=contract_address, value=value,
+                           tx_hash=tx_hash.hex(), tr_appid=appid)
     elif "get" in func_name:
-        func_param = w3.toChecksumAddress(func_param)
-        ss = "contract_instance.functions.{func_name}('{func_param}').call()".format(func_name=func_name,
-                                                                                     func_param=func_param)
-        print(ss)
-        result = eval(ss)
+        # func_param = w3.toChecksumAddress(func_param)
+        # ss = "contract_instance.functions.{func_name}('{func_param}').call()".format(func_name=func_name,
+        #                                                                              func_param=func_param)
+        func_param = format_func_param(func_param)
+        s3 = "contract_instance.functions.{func_name}({func_param}).call()".format(func_name=func_name,
+                                                                                   func_param=func_param)
+        print(s3)
+        result = eval(s3)
         print(result)
-    
+
         tx_hash = ""
         type = 2
         pay_gas = "0"
@@ -128,8 +143,6 @@ def send_100_to_new_account(to_address):
     receipt = 1
     if receipt:
         # 插入数据库
-        # transaction_time = time.strftime("%Y-%m-%d %X", time.localtime())
-        # 服务器时间 + 8 hour
         transaction_time = get_srv_time()
         session = db_manager.master()
         try:
