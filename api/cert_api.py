@@ -3,6 +3,7 @@ import json
 import IPy
 from my_dispatcher import api_add
 from util.db_redis import redis_store
+from util.log import rlog
 from util.dbmanager import db_manager
 from util.mysql_db import Apps
 from cert.eth_checkout import check_conn

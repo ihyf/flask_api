@@ -1,6 +1,6 @@
 # coding:utf-8
 from sqlalchemy import Column
-from sqlalchemy import Integer, String, Text, JSON, DATETIME, ForeignKey, PickleType
+from sqlalchemy import Integer, String, Text, JSON, DATETIME, ForeignKey, PickleType, DateTime, text
 from util.dbmanager import db_manager
 from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
@@ -64,6 +64,7 @@ class TransactionRecord(Base):
     tx_hash = Column(String(100))
     type = Column(String(10))
     pay_gas = Column(String(50))
+    tr_appid = Column(String(100), default="wallet tr")  # 调用方的appid
     
 
 class DeployContracts(Base):
@@ -117,7 +118,17 @@ class ContractOp(Base):
     pay_gas = Column(String(50))
     type = Column(Integer, default=0)  # 2为无需支付 1为已支付 0为初始态 -1为失效
     op_appid = Column(String(100))  # 调用方的appid
-    
+
+
+class RecodeLogs(Base):
+    __tablename__ = "recode_logs"
+    rl_id = Column(Integer, autoincrement=True, primary_key=True)
+    create_time = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    level_name = Column(String(10))
+    message = Column(String(255))
+    func_name = Column(String(255))
+    stack_info = Column(String(255))
+
     
 def create_tables():
     engine = db_manager.get_engine_master()

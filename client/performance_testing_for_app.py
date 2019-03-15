@@ -76,10 +76,7 @@ class Testing(object):
     async def test_get_balance(self):
         method = "get_balance"
         data = {
-            "address": [
-                "0x3ff83cc121adae7953cc96c8fab1463c2756d4d6",
-                "0x3ff83cc121adae7953cc96c8fab1463c2756d4d6"
-            ],
+            "address": ["0x7694eA056571c8e4207bc5dD07c23421880a7450"],
             "request_type": 2,
             "time": time.time()
         }
@@ -137,7 +134,7 @@ if __name__ == "__main__":
     
     # asyncio.ensure_future(slow_task(future))
     # future.add_done_callback(got_result)
-    tasks = [asyncio.ensure_future(t.test_create_account())]
+    tasks = [asyncio.ensure_future(t.test_get_balance())]
     t1 = time.time()
     loop.run_until_complete(asyncio.gather(*tasks))
     t2 = time.time()-t1

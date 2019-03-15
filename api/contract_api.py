@@ -5,8 +5,6 @@ import logging
 import time
 import requests
 from sqlalchemy import desc
-
-import config
 from flask import request
 from cert.eth_checkout import check_conn
 from my_dispatcher import api_add, api
@@ -21,6 +19,7 @@ from util.check_fuc import transfer_contract_tool
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from util.db_redis import redis_store
 from util.errno import err_format
+from util.tools import add_to_transaction
 
 
 @api_add
@@ -67,38 +66,22 @@ def transfer_contract(*args, **kwargs):
         
         try:
             if "get" not in func_name and "set" not in func_name:
-                #s1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
                 func_param = format_func_param(func_param)
                 s1 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei({value}, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
-                print(s1)
+                # print(s1)
                 t_dict = eval(s1)
-                print(t_dict)
+                # print(t_dict)
                 signed_txn = w3.eth.account.signTransaction(t_dict, private_key=private_key)
                 tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
                 w3.eth.waitForTransactionReceipt(tx_hash)
                 result = {"info": "{} ok".format(func_name)}
                 type = 1
                 pay_gas = ""
-    
+
+                # 增加到交易列表
+                add_to_transaction(from_address=account, to_address=contract_address, value=value,
+                                   tx_hash=tx_hash.hex(), tr_appid=appid)
             elif "set" in func_name:
-                # s = f"""contract_instance.functions.{func_name}({func_param}).transact({{'from': '{account}', 'value': w3.toWei({value}, 'ether')}})"""
-                # tx_hash = eval(s)
-                # w3.eth.waitForTransactionReceipt(tx_hash)
-                #
-                # result = {"info": "set {} ok".format(func_name)}
-                # type = 1
-                # pay_gas = ""
-                # 临时
-                # func_param = func_param.split(",")
-                # address = w3.toChecksumAddress(func_param[0])
-                # num1 = func_param[1]
-                # num2 = func_param[2]
-                #
-                # ss1 = f"""contract_instance.functions.{func_name}('{address}',{num1}, {num2}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
-                # print(ss1)
-                # t_dict = eval(ss1)
-                # print(t_dict)
-                # 临时
                 func_param = format_func_param(func_param)
                 s2 = f"""contract_instance.functions.{func_name}({func_param}).buildTransaction({{'from': '{account}', 'value': w3.toWei(0, 'ether'), 'chainId': 1500, 'gas': 2000000, 'gasPrice': 30000000000, 'nonce': {nonce}}})"""
                 t_dict = eval(s2)
@@ -106,15 +89,13 @@ def transfer_contract(*args, **kwargs):
                 tx_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
                 w3.eth.waitForTransactionReceipt(tx_hash)
     
-                pay_gas = ""
                 result = {"info": "set {} ok".format(func_name)}
                 type = 1
                 pay_gas = ""
-    
+                # 增加到交易列表
+                add_to_transaction(from_address=account, to_address=contract_address, value=0,
+                                   tx_hash=tx_hash.hex(), tr_appid=appid)
             elif "get" in func_name:
-                # func_param = w3.toChecksumAddress(func_param)
-                # ss = "contract_instance.functions.{func_name}('{func_param}').call()".format(func_name=func_name,
-                #                                                                              func_param=func_param)
                 func_param = format_func_param(func_param)
                 s3 = "contract_instance.functions.{func_name}({func_param}).call()".format(func_name=func_name,
                                                                                              func_param=func_param)
@@ -143,7 +124,7 @@ def transfer_contract(*args, **kwargs):
             else:
                 tx_hash = "call funcition"
             op = ContractOp(contract_name=contract_name, contract_address=contract_address,
-                            op_info=op_info, op_time=op_time, tx_hash=tx_hash, type=type, pay_gas=pay_gas)
+                            op_info=op_info, op_time=op_time, tx_hash=tx_hash, type=type, pay_gas=pay_gas, op_appid=appid)
             session.add(op)
             session.commit()
             session.close()

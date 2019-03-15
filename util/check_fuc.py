@@ -40,6 +40,7 @@ def bytes_str_to_dict(b):
 
 def get_srv_time():
     """获取服务器当前时间，并格式化成字符串"""
+    # 服务器时间 + 8 hour
     import datetime
     t = (datetime.datetime.now()+datetime.timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
     return t

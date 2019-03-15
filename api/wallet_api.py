@@ -87,7 +87,10 @@ def get_balance(*args, **kwargs):
             address = w3.toChecksumAddress(address)
             eth_balance = w3.fromWei(w3.eth.getBalance(address, 'latest'), 'ether')
             eth_balance = str(eth_balance)
-            op = session.query(Accounts).filter(Accounts.address == address).one()
+            try:
+                op = session.query(Accounts).filter(Accounts.address == address).one()
+            except Exception as e:
+                return err_format(errno_n=-10203)
             if op.arrival_reminder != 1:
                 op.arrival_reminder == 0
             d = {
@@ -96,19 +99,16 @@ def get_balance(*args, **kwargs):
                 "arrival_reminder": op.arrival_reminder
             }
             L.append(d)
-        ec_cli = kwargs['ec_cli']
-        ec_srv = kwargs['ec_srv']
-        sign = ec_srv.sign(L).decode()
-        d_list = ec_cli.encrypt(L).decode()
+    ec_cli = kwargs['ec_cli']
+    ec_srv = kwargs['ec_srv']
+    sign = ec_srv.sign(L).decode()
+    d_list = ec_cli.encrypt(L).decode()
 
-        return {
-            "code": "success",
-            "sign": sign,
-            "data": d_list
-
-        }
-    else:
-        return err_format(errno_n=-11102)
+    return {
+        "code": "success",
+        "sign": sign,
+        "data": d_list
+    }
 
 
 @api_add
@@ -301,7 +301,10 @@ def export_keystore(*args, **kwargs):
         return err_format(errno_n=-10106)
     keystore = data.get("keystore", None)
     pwd = data.get("pwd", None)
-    private_key = Account.decrypt(json.dumps(keystore), pwd)
+    try:
+        private_key = Account.decrypt(json.dumps(keystore), pwd)
+    except Exception as e:
+        return err_format(errno_n=-11103)
     account = Account.privateKeyToAccount(private_key)
     keystore = Account.encrypt(account.privateKey, pwd)
     
@@ -384,7 +387,6 @@ def read_msg(*args, **kwargs):
     try:
         data = kwargs['decrypt']
         address = data.get("address", None)
-        print(address)
         session = db_manager.master()
         # 小红点状态修改为已读
         op = session.query(Accounts).filter(Accounts.address == address).one()
