@@ -143,6 +143,8 @@ def send_100_to_new_account(to_address):
     receipt = 1
     if receipt:
         # 插入数据库
+        # transaction_time = time.strftime("%Y-%m-%d %X", time.localtime())
+        # 服务器时间 + 8 hour
         transaction_time = get_srv_time()
         session = db_manager.master()
         try:

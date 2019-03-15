@@ -33,8 +33,8 @@ to_100_keystore = {"address": "a4c013179c761a284197f8b4be18a74525650062",
 
 class Hyf(object):
     def __init__(self):
-        # self.appid = "hyf_app"
-        self.appid = "c66816dbb90591b1a1740ea0dc9b602e"
+        self.appid = "hyf_app"
+        # self.appid = "c66816dbb90591b1a1740ea0dc9b602e"
         self.headers = {
             "content-type": "application/json",
             "Authorization": "poa test"
@@ -51,10 +51,10 @@ class Hyf(object):
                 }
             }
         }
-        self.ec_cli = EthCert("c66816dbb90591b1a1740ea0dc9b602e_cli")
-        # self.ec_cli = EthCert("hyf_app")
-        # self.ec_srv = EthCert("hyf_srv")
-        self.ec_srv = EthCert("c66816dbb90591b1a1740ea0dc9b602e_srv")
+        # self.ec_cli = EthCert("c66816dbb90591b1a1740ea0dc9b602e_cli")
+        self.ec_cli = EthCert("hyf_app")
+        self.ec_srv = EthCert("hyf_srv")
+        # self.ec_srv = EthCert("c66816dbb90591b1a1740ea0dc9b602e_srv")
         self.ec_cli.load_key_from_file()
         self.ec_cli.serialization()
         self.ec_srv.load_key_from_file()
@@ -90,25 +90,26 @@ class Hyf(object):
         method = "get_balance"
         data = {
             "address": [
-                "0xa4c013179c761a284197f8b4be18a74525650062",
-                "0xa4c013179c761a284197f8b4be18a74525650062"
+                "0xc5FcFc24cb20d89BECC6E1c3488d5b2336965345",
+                "0xc5FcFc24cb20d89BECC6E1c3488d5b2336965345"
             ],
+            "request_type": 1,
             "time": time.time()
         }
-        self.send_request(url=self.url_waiwang, method=method, data=data)
+        self.send_request(url=self.url_neiwang, method=method, data=data)
     
     def test_send_transaction(self):
         method = "send_transaction"
         data = {
-            "to_address": "0xa84684b7db41dae3a26a5ca7b87bc967a8dd1107",
-            "value": 5000000,
+            "to_address": "0xc5FcFc24cb20d89BECC6E1c3488d5b2336965345",
+            "value": 5,
             "gas_limit": 40000,
             "gas_price": 90000000,
             "pwd": "123456",
             "keystore": keystore_poa_node1,
             "time": time.time()
         }
-        self.send_request(url=self.url_local, method=method, data=data)
+        self.send_request(url=self.url_neiwang, method=method, data=data)
     
     def test_use_contract(self):
         method = "transfer_contract"
@@ -125,7 +126,7 @@ class Hyf(object):
     def test_add_master_contract(self):
         method = "add_master_contract"
         data = {
-            "master_contract_name": "hyf_master_20190222_1825",
+            "master_contract_name": "hyf_master_20190315",
             "time": time.time()
         }
         self.send_request(url=self.url_neiwang, method=method, data=data)
@@ -155,6 +156,6 @@ if __name__ == "__main__":
     # hyf.test_deploy_contract()
     # hyf.test_use_contract()
     # hyf.test_create_account()
-    # hyf.test_get_balance()
+    hyf.test_get_balance()
     # hyf.test_send_transaction()
-    hyf.test_add_master_contract()
+    # hyf.test_add_master_contract()
