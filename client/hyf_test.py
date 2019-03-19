@@ -84,7 +84,7 @@ class Hyf(object):
             "pwd": "hyf",
             "time": time.time()
         }
-        self.send_request(url=self.url_neiwang, method=method, data=data)
+        self.send_request(url=self.url_waiwang, method=method, data=data)
     
     def test_get_balance(self):
         method = "get_balance"
@@ -101,15 +101,15 @@ class Hyf(object):
     def test_send_transaction(self):
         method = "send_transaction"
         data = {
-            "to_address": "0xc5FcFc24cb20d89BECC6E1c3488d5b2336965345",
-            "value": 5,
+            "to_address": "0xb177b5a38825b9dff97cf9192b86a7bef60ea644",
+            "value": 50000000,
             "gas_limit": 40000,
             "gas_price": 90000000,
             "pwd": "123456",
             "keystore": keystore_poa_node1,
             "time": time.time()
         }
-        self.send_request(url=self.url_neiwang, method=method, data=data)
+        self.send_request(url=self.url_waiwang, method=method, data=data)
     
     def test_use_contract(self):
         method = "transfer_contract"
@@ -156,6 +156,6 @@ if __name__ == "__main__":
     # hyf.test_deploy_contract()
     # hyf.test_use_contract()
     # hyf.test_create_account()
-    hyf.test_get_balance()
-    # hyf.test_send_transaction()
+    # hyf.test_get_balance()
+    hyf.test_send_transaction()
     # hyf.test_add_master_contract()

@@ -7,6 +7,7 @@ from util.dbmanager import db_manager
 from eth_account import Account
 from util.mysql_db import ContractOp, TransactionRecord
 from util.tools import add_to_transaction
+import config
 
 
 def check_kv(d1, necessary_keys):
@@ -124,7 +125,7 @@ def transfer_contract_tool(data):
 
 def send_100_to_new_account(to_address):
     # 创建账户送100个币
-    keystore = {'address': '564871bc2f5768abd302b8631398cca4626af875', 'crypto': {'cipher': 'aes-128-ctr', 'cipherparams': {'iv': '5d4e943bf44ca9e8fe3ca65169a652df'}, 'ciphertext': '07e8f166927a04b56c0b053c56ffac87a92dddf6b5809f1e01465e4af61566c4', 'kdf': 'pbkdf2', 'kdfparams': {'c': 1000000, 'dklen': 32, 'prf': 'hmac-sha256', 'salt': '3d0b73826b081a7109d34b91878a1d52'}, 'mac': 'fd2beb020a8f1ca3f53fd72f8c8b1f253ae22b03a3bd9d3a3e9c20499cd9f817'}, 'id': '593880ec-8713-42af-a060-92be55cf5fdd', 'version': 3}
+    keystore = config.to_100_keystore
     pwd = "hyf"
     private_key = Account.decrypt(json.dumps(keystore), pwd)
     account = Account.privateKeyToAccount(private_key)

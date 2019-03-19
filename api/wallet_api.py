@@ -158,12 +158,12 @@ def send_transaction(*args, **kwargs):
             try:
                 new_tr = TransactionRecord(from_address=from_address, to_address=to_address,
                                            value=value, transaction_time=transaction_time,
-                                           tx_hash=tx_hash.hex(), type=1)
+                                           tx_hash=tx_hash.hex(), type=1, tr_appid=kwargs["appid"])
                 session.add(new_tr)
                 session.commit()
                 session.close()
             except Exception as e:
-                return err_format(errno_n=-11104)
+                return err_format(errno_n=-10205)
         # 更新到账小红点提示
         try:
             op = session.query(Accounts).filter(Accounts.address == to_address).one()
