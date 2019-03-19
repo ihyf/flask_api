@@ -32,11 +32,10 @@ def check_conn(request):
                 if redis_store.exists(faster_rc) == 0:
                     redis_store.hset(faster_rc, this_hash, 1)
                     redis_store.expire(faster_rc, 60 * 60 * 12)
-                # 性能测试 暂时注释
-                # else:
-                #     if redis_store.hexists(faster_rc, this_hash) is True:
-                #         return err_format(0, -10401)
-                # redis_store.hset(faster_rc, this_hash, 1)
+                else:
+                    if redis_store.hexists(faster_rc, this_hash) is True:
+                        return err_format(0, -10401)
+                redis_store.hset(faster_rc, this_hash, 1)
             except Exception as e:
                 return err_format(0, -10301)
             # 查询appid

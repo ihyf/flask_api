@@ -59,7 +59,7 @@ class Hyf(object):
         self.ec_cli.serialization()
         self.ec_srv.load_key_from_file()
         self.ec_srv.serialization()
-        self.url_waiwang = "http://47.52.166.23:9000/api"
+        self.url_waiwang = "http://47.244.167.66:9000/api"
         self.url_neiwang = "http://192.168.1.14:9000/api"
         self.url_local = "http://localhost:9000/api"
     
@@ -90,13 +90,13 @@ class Hyf(object):
         method = "get_balance"
         data = {
             "address": [
-                "0xc5FcFc24cb20d89BECC6E1c3488d5b2336965345",
-                "0xc5FcFc24cb20d89BECC6E1c3488d5b2336965345"
+                "0x3ff83cc121adae7953cc96c8fab1463c2756d4d6",
+                "0x3ff83cc121adae7953cc96c8fab1463c2756d4d6"
             ],
             "request_type": 1,
             "time": time.time()
         }
-        self.send_request(url=self.url_neiwang, method=method, data=data)
+        self.send_request(url=self.url_waiwang, method=method, data=data)
     
     def test_send_transaction(self):
         method = "send_transaction"
@@ -126,7 +126,7 @@ class Hyf(object):
     def test_add_master_contract(self):
         method = "add_master_contract"
         data = {
-            "master_contract_name": "hyf_master_20190315",
+            "master_contract_name": "hyf_master_20190319",
             "time": time.time()
         }
         self.send_request(url=self.url_neiwang, method=method, data=data)

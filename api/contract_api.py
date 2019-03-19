@@ -59,7 +59,7 @@ def transfer_contract(*args, **kwargs):
                 account_instance = Account.privateKeyToAccount(private_key)
                 address = account_instance.address
                 account = w3.toChecksumAddress(address)
-                print(account)
+                # nonce 值 规避双花
                 nonce = w3.eth.getTransactionCount(account)
             except Exception as e:
                 return err_format(errno_n=-11103)
@@ -143,9 +143,10 @@ def transfer_contract(*args, **kwargs):
         }
     else:
         return err_format(errno_n=-10106)
-    
-    
-def generate_contrants_md(*args, **kwargs):
+
+
+def generate_contrants_md():
+    # 根据api生成的md文档
     with open("client/contracts_func.md", "w", encoding="utf-8") as cf:
         for root, dirs, files, in os.walk("json_files", topdown=False):
             for f_name in files:
@@ -160,41 +161,29 @@ def generate_contrants_md(*args, **kwargs):
                 cf.write("\n")
                 cf.write("# 合约地址: " + contract_address + "\n")
                 cf.write("\n")
-                cf.write("函数名|参数名|参数类型|返回|返回类型|说明")
-                cf.write("\n")
-                cf.write(":--:|:--:|:--:|:--:|:--:|:--")
                 for t in abi:
-                    cf.write("\n")
                     if t["type"] == "function":
                         s_func = t["name"]
                         s_input = [it for it in t["inputs"]]
                         s_input1 = [it['name'] for it in t["inputs"]]
                         s_func = s_func + "(" + ','.join(s_input1) + ")"
                         s_return = t["outputs"]
-                        cf.write(s_func + "|")
+                        cf.write("## " + s_func + "\n")
                         if s_input:
-                            name_l = []
-                            type_l = []
+                            cf.write("参数类型:" + "\n")
+                            cf.write("\n")
                             for i in s_input:
-                                name_l.append(i["name"])
-                                type_l.append(i["type"])
-                            cf.write(",".join(name_l) + "|")
-                            cf.write(",".join(type_l) + "|")
-                        else:
-                            cf.write("无" + "|")
-                            cf.write("无" + "|")
+                                cf.write(i['name'] + "--->" + i['type'] + "\n")
+                                cf.write("\n")
+                        
                         if s_return:
-                            name_l = []
-                            type_l = []
+                            cf.write("返回值:" + "\n")
+                            cf.write("\n")
                             for i in s_return:
-                                name_l.append(i["name"])
-                                type_l.append(i["type"])
-                            cf.write(",".join(name_l) + "|")
-                            cf.write(",".join(type_l) + "|")
-                
+                                cf.write(i['type'] + "\n")
+                        
                         else:
-                            cf.write("无" + "|")
-                            cf.write("无" + "|")
+                            cf.write("返回值: 无" + "\n")
         return {"data": "ok"}
     
 
@@ -281,6 +270,7 @@ def deploy_contract(*args, **kwargs):
 @api_add
 @check_conn(request)
 def add_master_contract(*args, **kwargs):
+    # 部署主合约
     data = kwargs['decrypt']
     necessary_keys = ["master_contract_name"]
     check = check_kv(data, necessary_keys)
@@ -362,7 +352,7 @@ def transfer_nopay_op(*args, **kwargs):
         try:
             session = db_manager.master()
             app = session.query(Apps).filter(Apps.appid == appid).one()
-            if app:
+            if app and app.master_contract_address:
                 master_contract_address = app.master_contract_address[0]
                 dc = session.query(DeployContracts). \
                     filter(DeployContracts.master_contract_address == master_contract_address). \
@@ -444,6 +434,7 @@ def op_details(*args, **kwargs):
 @api_add
 @check_conn(request)
 def pay_transfer_op(*args, **kwargs):
+    # 支付交易订单 安卓
     data = kwargs['decrypt']
     necessary_keys = ["op_id", "keystore", "pwd"]
     check = check_kv(data, necessary_keys)

@@ -371,6 +371,7 @@ def get_all_transaction(*args, **kwargs):
 
 @api_add
 def search_transaction(*args, **kwargs):
+    # 去链上通过hash 查询交易
     necessary_keys = ["hx_hash"]
     check = check_kv(kwargs, necessary_keys)
     if check == "Success":
