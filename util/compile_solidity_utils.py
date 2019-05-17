@@ -1,7 +1,7 @@
 # coding:utf-8
 import pickle
 from web3 import Web3, WebsocketProvider
-from solc import compile_files, link_code
+# from solc import compile_files, link_code
 import config
 from web3.middleware import geth_poa_middleware, pythonic_middleware
 # web3.py instance
