@@ -13,7 +13,8 @@ BIP39_SALT_MODIFIER = "mnemonic"
 BIP32_PRIVDEV = 0x80000000
 BIP32_CURVE = SECP256k1
 BIP32_SEED_MODIFIER = b'Bitcoin seed'
-LEDGER_ETH_DERIVATION_PATH = "m/44'/60'/0'/0"
+# LEDGER_ETH_DERIVATION_PATH = "m/44'/60'/0'/0"
+LEDGER_ETH_DERIVATION_PATH = "m/44'/4242'/0'/0"
 
 
 def mnemonic_to_bip39seed(mnemonic, passphrase):
